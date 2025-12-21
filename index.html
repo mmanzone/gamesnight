@@ -13,7 +13,8 @@
             --bg-color: #1a1a1d;
             --table-bg: #252529;
             --gold: #d4af37;
-            --gold-dim: #8a7326;
+            --gold-dim: #8a7326; 
+            --gold-dark: #5c4d1a;
             --text: #f0f0f0;
             --btn-bg: #3e3e42;
             --dark-overlay: rgba(0,0,0,0.95);
@@ -150,7 +151,16 @@
             text-shadow: 2px 2px 0px #000;
         }
 
-        .instruction { font-size: 0.9rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px;}
+        /* UPDATED INSTRUCTION STYLE */
+        .instruction { 
+            font-size: 1.4rem; 
+            color: var(--text); 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            font-weight: 800; /* Bolder */
+            text-shadow: 1px 1px 2px #000;
+            margin-top: 5px;
+        }
 
         /* Numeric Grid */
         .num-grid {
@@ -353,7 +363,7 @@
 </head>
 <body>
 
-    <audio id="pirate-sound" src="argh.mp3" preload="auto"></audio>
+    <audio id="sfx-player" preload="auto"></audio>
 
     <header>
         <h1><i class="fas fa-skull-crossbones"></i> Skull King</h1>
@@ -422,7 +432,7 @@
         
         <div id="confirm-section" class="hidden">
             <div id="summary-list"></div>
-            <button class="btn-confirm" onclick="finalizePhase()" style="width:100%"><i class="fas fa-check"></i> Confirm</button>
+            <button class="btn-confirm" onclick="finalizePhase()" style="width:100%"><i class="fas fa-check"></i> <span id="txt-confirm">Confirm</span></button>
             <button class="btn-revert" onclick="revertAction()" style="width:100%; margin-top:10px; border:none; color:#666">Go Back</button>
         </div>
         
@@ -442,23 +452,41 @@
 
     <script>
         /* --- CONFIG --- */
-        const STORAGE_KEY = 'skullKing_Soren_Final';
-        const FALLBACK_SOUND = "https://archive.org/download/PirateArrr/Pirate%20Arrr.mp3";
+        const STORAGE_KEY = 'skullKing_Soren_v35';
         
+        // Sound Configuration: Local first, Online Backup
+        const SOUNDS = {
+            start: { local: "argh.mp3", backup: "https://archive.org/download/PirateArrr/Pirate%20Arrr.mp3" },
+            bet:   { local: "sword.mp3", backup: "https://archive.org/download/SwordSwoosh/SwordSwoosh.mp3" },
+            score: { local: "coin.mp3", backup: "https://archive.org/download/Coins_201608/Coins.mp3" }
+        };
+
         /* --- SOUND --- */
-        function playPirateSound() {
-            const audio = document.getElementById('pirate-sound');
+        function playSound(type) {
+            const audio = document.getElementById('sfx-player');
+            const soundConfig = SOUNDS[type];
+            if(!soundConfig) return;
+
+            // Try local first
+            audio.src = soundConfig.local;
+
+            // Error handler: switch to backup if local fails
             audio.onerror = function() {
-                if (audio.src !== FALLBACK_SOUND) {
-                    audio.src = FALLBACK_SOUND;
-                    audio.play();
+                console.log(`Local ${type} sound failed, switching to backup`);
+                if (audio.src !== soundConfig.backup) {
+                    audio.src = soundConfig.backup;
+                    audio.play().catch(e => console.log("Audio play failed:", e));
                 }
             };
+
             audio.currentTime = 0;
             audio.volume = 1.0; 
+            
+            // Attempt play
             audio.play().catch(() => {
+                // If local blocked or missing, force backup immediately (for some browsers)
                 if (audio.src.indexOf("http") === -1) {
-                     audio.src = FALLBACK_SOUND;
+                     audio.src = soundConfig.backup;
                      audio.play();
                 }
             });
@@ -484,6 +512,7 @@
                 resetWarn: "Are you sure you want to delete this game and start over?",
                 modalHead: "Bonus & Rules",
                 betPrefix: "Bet:",
+                donePrefix: "Done:",
                 impossible: "Impossible! Tricks won cannot exceed round number.",
                 noBonusError: "Impossible! You cannot get Bonus Points if you won 0 tricks!",
                 review: "Review",
@@ -520,6 +549,7 @@
                 resetWarn: "Voulez-vous vraiment effacer cette partie et recommencer ?",
                 modalHead: "Règles & Bonus",
                 betPrefix: "Pari:",
+                donePrefix: "Fait:",
                 impossible: "Impossible ! Le total des plis dépasse la manche.",
                 noBonusError: "Impossible ! Pas de Points Bonus avec 0 pli gagné !",
                 review: "Vérification",
@@ -559,6 +589,7 @@
             document.getElementById('txt-undo').innerText = t('undo');
             document.getElementById('setup-title').innerText = t('manifest');
             document.getElementById('modal-head').innerText = t('modalHead');
+            document.getElementById('txt-confirm').innerText = t('confirm');
             
             if(gameState.started) {
                 renderWizard();
@@ -589,7 +620,7 @@
             activePlayerIdx: 0,
             useSorenRule: true,
             tempBonus: 0,
-            tempWonValue: null // Persist the selection even if not saved
+            tempWonValue: null 
         };
 
         /* --- INIT & SAVE --- */
@@ -686,7 +717,7 @@
             renderTableStructure();
             renderWizard();
             saveState();
-            playPirateSound();
+            playSound('start'); // SOUND: Game Start
         }
 
         function renderWizard() {
@@ -861,16 +892,16 @@
             
             if (gameState.phase === 'betting') {
                 gameState.phase = 'scoring';
-                playPirateSound();
+                playSound('bet'); // SOUND: Sword for betting done
             } else {
                 // End of Scoring
                 if (gameState.round < gameState.maxRounds) {
-                    playPirateSound();
+                    playSound('score'); // SOUND: Coin for score done
                     gameState.round++;
                     gameState.phase = 'betting';
                     addTableRow(gameState.round);
                 } else {
-                    playPirateSound();
+                    playSound('score');
                     alert("Game Over! Check totals.");
                     document.getElementById('input-zone').style.display = 'none';
                 }
@@ -969,12 +1000,31 @@
             const cell = document.getElementById(`cell-r${rIdx}-p${pIdx}`);
             if(!cell) return;
             
-            const betDisplay = (data.bet !== undefined && data.bet !== null) ? `${t('betPrefix')} ${data.bet}` : '-';
+            let betDisplay = '-';
+            if (data.bet !== undefined && data.bet !== null) {
+                betDisplay = `${t('betPrefix')} ${data.bet}`;
+                // Add actual result if available
+                if (data.won !== undefined && data.won !== null) {
+                    betDisplay += ` | ${t('donePrefix')} ${data.won}`;
+                }
+            }
+
             const scoreDisplay = (data.points !== undefined) ? data.points : '';
             
+            // Color Logic
             let color = '#fff';
-            if(data.points >= 0) color = 'var(--gold)';
-            if(data.points < 0) color = '#888';
+            if (data.points !== undefined) {
+                if (data.points >= 0) {
+                    // Check perfection
+                    if (data.won !== undefined && data.bet === data.won) {
+                        color = 'var(--gold)'; // Perfect
+                    } else {
+                        color = 'var(--gold-dim)'; // Partial or imperfect success
+                    }
+                } else {
+                    color = '#888'; // Negative
+                }
+            }
 
             cell.innerHTML = `
                 <span class="cell-bet">${betDisplay}</span>
