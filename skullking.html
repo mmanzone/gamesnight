@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Skull King: Soren's Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-color: #1a1a1d;
+            --table-bg: #252529;
+            --gold: #d4af37;
+            --text: #f0f0f0;
+            --danger: #c0392b;
+            --success: #27ae60;
+            --btn-bg: #3e3e42;
+        }
+
+        * { box-sizing: border-box; touch-action: manipulation; }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0; padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Header --- */
+        header {
+            background: #000;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--gold);
+            height: 60px;
+        }
+
+        h1 {
+            font-family: 'Pirata One', cursive;
+            color: var(--gold);
+            margin: 0;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+        }
+
+        .lang-toggle {
+            background: none;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        /* --- Main Layout --- */
+        .app-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Setup Screen --- */
+        #setup-screen {
+            padding: 20px;
+            overflow-y: auto;
+            text-align: center;
+        }
+
+        .input-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        input[type="text"] {
+            background: #fdf5e6;
+            border: 2px solid #555;
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 4px;
+            color: #000;
+        }
+
+        .btn-main {
+            background: var(--gold);
+            color: #000;
+            border: none;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-family: 'Pirata One', cursive;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .btn-add {
+            background: #444;
+            color: #fff;
+            padding: 10px;
+            border: 1px dashed #777;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+
+        /* --- Input Area (The Wizard) --- */
+        #input-zone {
+            flex: 0 0 auto; /* Don't grow, stick to content size */
+            background: #2c2c30;
+            padding: 15px;
+            border-bottom: 1px solid #444;
+            display: none; /* Hidden until game starts */
+        }
+
+        .wizard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .player-turn {
+            font-family: 'Pirata One', cursive;
+            font-size: 1.8rem;
+            color: var(--gold);
+        }
+
+        .instruction { font-size: 0.9rem; color: #aaa; }
+
+        /* Numeric Grid for Betting/Tricks */
+        .num-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .num-btn {
+            background: var(--btn-bg);
+            color: white;
+            border: 1px solid #555;
+            padding: 12px 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .num-btn:active { background: var(--gold); color: black; transform: scale(0.95); }
+
+        /* Bonus Input Specifics */
+        .bonus-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+            background: #222;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .bonus-btn {
+            width: 40px; height: 40px;
+            font-size: 1.5rem;
+            border: none; background: #444; color: white; border-radius: 50%;
+        }
+        #bonus-display { font-size: 1.5rem; color: var(--gold); width: 50px; text-align: center;}
+
+        .action-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-revert {
+            background: var(--danger);
+            color: white;
+            width: 50px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            border: none; border-radius: 4px;
+        }
+
+        .btn-confirm {
+            flex: 1;
+            background: var(--success);
+            color: white;
+            font-weight: bold;
+            border: none; border-radius: 4px;
+            padding: 12px;
+            font-size: 1.1rem;
+        }
+
+        /* --- Scoreboard Table --- */
+        #scoreboard-container {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        th {
+            background: #000;
+            color: var(--gold);
+            position: sticky;
+            top: 0;
+            padding: 10px 5px;
+            z-index: 2;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            font-family: 'Pirata One', cursive;
+            font-size: 1.1rem;
+            min-width: 70px;
+        }
+
+        /* First column (Round #) sticky left */
+        td:first-child, th:first-child {
+            position: sticky;
+            left: 0;
+            background: #111;
+            z-index: 3;
+            border-right: 1px solid #444;
+            width: 40px;
+        }
+        th:first-child { z-index: 4; }
+
+        td {
+            padding: 8px 4px;
+            border-bottom: 1px solid #333;
+            border-right: 1px solid #333;
+            height: 50px;
+        }
+
+        .cell-bet { font-size: 0.8rem; color: #888; display: block; }
+        .cell-score { font-size: 1.1rem; font-weight: bold; display: block;}
+        
+        /* Highlight active round row */
+        .active-round { background-color: rgba(212, 175, 55, 0.1); }
+        .score-total-row { background: #000; font-weight: bold; color: var(--gold); border-top: 2px solid var(--gold);}
+
+        .hidden { display: none !important; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 id="app-title"><i class="fas fa-skull"></i> Skull King</h1>
+        <button class="lang-toggle" onclick="toggleLanguage()" id="lang-btn">🇬🇧</button>
+    </header>
+
+    <div class="app-body">
+        
+        <div id="setup-screen">
+            <h2 id="setup-title">Ship Manifest</h2>
+            <div class="input-list" id="player-inputs">
+                </div>
+            <button class="btn-add" onclick="addPlayerInput()">+ <span id="txt-add">Add Pirate</span></button>
+            
+            <div style="margin-top: 20px; text-align: left; background: #222; padding: 10px; border-radius: 4px;">
+                <label style="display:flex; align-items:center; gap: 10px;">
+                    <input type="checkbox" id="use-soren-rule" checked>
+                    <span id="txt-rule">Use Soren's Scoring Rule</span>
+                </label>
+                <small style="color:#777; display:block; margin-top:5px;" id="txt-rule-desc">
+                    Success: Round x 10. <br>Off by 1: Half points. <br>Off by 2+: Zero.
+                </small>
+            </div>
+
+            <button class="btn-main" onclick="startGame()" id="btn-start">Set Sail!</button>
+        </div>
+
+        <div id="input-zone">
+            <div class="wizard-header">
+                <div>
+                    <div class="player-turn" id="wiz-player">Player Name</div>
+                    <div class="instruction" id="wiz-instruction">Enter Bet</div>
+                </div>
+                <div style="font-size: 1.5rem; font-family:'Pirata One'" id="wiz-round">R1</div>
+            </div>
+
+            <div id="number-grid" class="num-grid">
+                </div>
+
+            <div id="bonus-section" class="hidden">
+                <div class="instruction" style="text-align:center; margin-top:5px;" id="txt-bonus">Bonus Points</div>
+                <div class="bonus-controls">
+                    <button class="bonus-btn" onclick="adjustBonus(-10)">-</button>
+                    <span id="bonus-display">0</span>
+                    <button class="bonus-btn" onclick="adjustBonus(10)">+</button>
+                </div>
+                
+                <div class="action-row">
+                    <button class="btn-revert" onclick="revertAction()"><i class="fas fa-undo"></i></button>
+                    <button class="btn-confirm" onclick="confirmResult()" id="btn-save">Save Results</button>
+                </div>
+            </div>
+            
+            <div id="bet-controls" class="action-row hidden">
+                 <button class="btn-revert" onclick="revertAction()" style="width: 100%"><i class="fas fa-undo"></i> <span id="txt-undo">Undo</span></button>
+            </div>
+
+        </div>
+
+        <div id="scoreboard-container" class="hidden">
+            <table id="score-table">
+                <thead id="table-head">
+                    </thead>
+                <tbody id="table-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        /* --- Audio Setup --- */
+        // Simple synth sound to avoid external MP3 dependencies
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playArgh() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = 'sawtooth';
+            // Drop pitch to sound like a grunt
+            oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.3);
+            
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+
+        /* --- Localization --- */
+        let curLang = 'en';
+        const I18N = {
+            en: {
+                add: "Add Pirate",
+                start: "Set Sail!",
+                rule: "Use Soren's Scoring Rule",
+                ruleDesc: "Success: Round x 10. Off by 1: Half pts. Off by 2+: Zero.",
+                betInstr: "Place your bet for",
+                resInstr: "Tricks won by",
+                bonus: "Bonus Points",
+                save: "Save & Next",
+                undo: "Undo",
+                round: "R",
+                total: "Total",
+                manifest: "Ship Manifest"
+            },
+            fr: {
+                add: "Ajouter un Pirate",
+                start: "Hisser les voiles !",
+                rule: "Utiliser la règle de Soren",
+                ruleDesc: "Succès : Manche x 10. Écart de 1 : Moitié pts. Écart 2+ : Zéro.",
+                betInstr: "Faites vos jeux pour",
+                resInstr: "Plis remportés par",
+                bonus: "Points Bonus",
+                save: "Sauver & Suivant",
+                undo: "Retour",
+                round: "M",
+                total: "Total",
+                manifest: "Manifeste du Navire"
+            }
+        };
+
+        function t(key) { return I18N[curLang][key]; }
+
+        function toggleLanguage() {
+            curLang = curLang === 'en' ? 'fr' : 'en';
+            document.getElementById('lang-btn').innerText = curLang === 'en' ? '🇬🇧' : '🇫🇷';
+            updateUIText();
+        }
+
+        function updateUIText() {
+            document.getElementById('txt-add').innerText = t('add');
+            document.getElementById('btn-start').innerText = t('start');
+            document.getElementById('txt-rule').innerText = t('rule');
+            document.getElementById('txt-rule-desc').innerHTML = t('ruleDesc');
+            document.getElementById('txt-bonus').innerText = t('bonus');
+            document.getElementById('btn-save').innerText = t('save');
+            document.getElementById('txt-undo').innerText = t('undo');
+            document.getElementById('setup-title').innerText = t('manifest');
+            // If game is running, update wizard text
+            if(gameState.started) renderWizard();
+        }
+
+
+        /* --- Game State --- */
+        const gameState = {
+            started: false,
+            players: [], // { name, scores: [], currentBet: null, currentWon: null, currentBonus: 0 }
+            round: 1,
+            maxRounds: 10,
+            phase: 'betting', // 'betting' or 'scoring'
+            activePlayerIdx: 0,
+            useSorenRule: true,
+            tempBonus: 0
+        };
+
+        /* --- Initialization --- */
+        function initSetup() {
+            const container = document.getElementById('player-inputs');
+            container.innerHTML = '';
+            // Default 4 players
+            for(let i=0; i<4; i++) {
+                addPlayerInput();
+            }
+        }
+
+        function addPlayerInput() {
+            const div = document.createElement('div');
+            const num = document.getElementById('player-inputs').children.length + 1;
+            div.innerHTML = `<input type="text" class="p-name" placeholder="Pirate ${num}">`;
+            document.getElementById('player-inputs').appendChild(div);
+        }
+
+        function startGame() {
+            const inputs = document.querySelectorAll('.p-name');
+            const names = Array.from(inputs).map(i => i.value.trim()).filter(n => n !== "");
+            
+            if(names.length < 1) return alert("Need pirates!");
+
+            gameState.players = names.map(n => ({
+                name: n,
+                scores: [], // Array of objects { bet, won, bonus, points }
+                totalScore: 0
+            }));
+
+            gameState.useSorenRule = document.getElementById('use-soren-rule').checked;
+            gameState.started = true;
+            gameState.round = 1;
+            gameState.phase = 'betting';
+            gameState.activePlayerIdx = 0;
+
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('input-zone').style.display = 'block';
+            document.getElementById('scoreboard-container').classList.remove('hidden');
+
+            renderTableStructure();
+            renderWizard();
+            playArgh();
+        }
+
+        /* --- Wizard Logic (The Input Zone) --- */
+        function renderWizard() {
+            const player = gameState.players[gameState.activePlayerIdx];
+            const wizPlayer = document.getElementById('wiz-player');
+            const wizInstr = document.getElementById('wiz-instruction');
+            const wizRound = document.getElementById('wiz-round');
+            const numGrid = document.getElementById('number-grid');
+            const bonusSection = document.getElementById('bonus-section');
+            const betControls = document.getElementById('bet-controls');
+
+            wizPlayer.innerText = player.name;
+            wizRound.innerText = `${t('round')}${gameState.round}`;
+
+            numGrid.innerHTML = '';
+
+            // Generate Buttons 0 to Round#
+            for(let i=0; i <= gameState.round; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'num-btn';
+                btn.innerText = i;
+                btn.onclick = () => handleNumberClick(i);
+                numGrid.appendChild(btn);
+            }
+
+            if (gameState.phase === 'betting') {
+                wizInstr.innerText = `${t('betInstr')} ${t('round')} ${gameState.round}`;
+                bonusSection.classList.add('hidden');
+                // Only show Revert if not the very first player of first round
+                if(gameState.activePlayerIdx > 0 || gameState.round > 1) {
+                    betControls.classList.remove('hidden');
+                } else {
+                    betControls.classList.add('hidden');
+                }
+            } else {
+                // Scoring Phase
+                wizInstr.innerText = `${t('resInstr')} ${player.name}`;
+                betControls.classList.add('hidden');
+                bonusSection.classList.remove('hidden'); // Shows save button and bonus
+                
+                // Highlight selected number if any
+                gameState.tempBonus = 0;
+                document.getElementById('bonus-display').innerText = "0";
+                
+                // We initially hide the number grid in scoring until we need it? 
+                // No, we need grid to pick tricks won.
+                // Let's visualy select the button if we clicked it.
+                // Actually, flow: Click Number -> Auto Sets Won -> Wait for Bonus/Save.
+            }
+            
+            highlightActiveRow();
+        }
+
+        let tempWonValue = null; // Store won value before saving
+
+        function handleNumberClick(val) {
+            playArgh();
+            const player = gameState.players[gameState.activePlayerIdx];
+
+            if (gameState.phase === 'betting') {
+                // Save Bet immediately and next
+                if(!player.scores[gameState.round-1]) player.scores[gameState.round-1] = {};
+                player.scores[gameState.round-1].bet = val;
+                
+                nextStep();
+            } else {
+                // Scoring Phase: Click number = Sets "Won", but wait for Bonus/Save
+                tempWonValue = val;
+                
+                // Visual feedback on buttons
+                const btns = document.querySelectorAll('.num-btn');
+                btns.forEach(b => {
+                    b.style.background = (parseInt(b.innerText) === val) ? 'var(--gold)' : 'var(--btn-bg)';
+                    b.style.color = (parseInt(b.innerText) === val) ? 'black' : 'white';
+                });
+            }
+        }
+
+        function adjustBonus(amount) {
+            playArgh();
+            gameState.tempBonus += amount;
+            document.getElementById('bonus-display').innerText = gameState.tempBonus;
+        }
+
+        function confirmResult() {
+            if (tempWonValue === null) {
+                alert("Please select tricks won first");
+                return;
+            }
+            
+            const player = gameState.players[gameState.activePlayerIdx];
+            const roundData = player.scores[gameState.round-1];
+            
+            // Calculate Score
+            roundData.won = tempWonValue;
+            roundData.bonus = gameState.tempBonus;
+            
+            if (gameState.useSorenRule) {
+                roundData.points = calculateSorenScore(gameState.round, roundData.bet, roundData.won, roundData.bonus);
+            } else {
+                roundData.points = calculateStandardScore(gameState.round, roundData.bet, roundData.won, roundData.bonus);
+            }
+
+            player.totalScore += roundData.points;
+            updateScoreboardValues();
+            
+            playArgh();
+            tempWonValue = null;
+            nextStep();
+        }
+
+        function nextStep() {
+            gameState.activePlayerIdx++;
+
+            // If cycled through all players
+            if(gameState.activePlayerIdx >= gameState.players.length) {
+                gameState.activePlayerIdx = 0;
+                
+                if (gameState.phase === 'betting') {
+                    // Betting done, Update UI to show bets in table, but wait for play
+                    gameState.phase = 'scoring';
+                    // In a real game, people play cards now. 
+                    // The UI stays in "Scoring" mode awaiting input.
+                } else {
+                    // Scoring done for this round.
+                    if (gameState.round < gameState.maxRounds) {
+                        gameState.round++;
+                        gameState.phase = 'betting';
+                        // Add new row to table
+                        addTableRow(gameState.round);
+                    } else {
+                        alert("Game Over! Check totals.");
+                        document.getElementById('input-zone').style.display = 'none';
+                    }
+                }
+            }
+            updateScoreboardValues();
+            renderWizard();
+        }
+
+        function revertAction() {
+            playArgh();
+            if (gameState.activePlayerIdx > 0) {
+                gameState.activePlayerIdx--;
+            } else {
+                // We are at player 0. Can we go back to previous round?
+                // For simplicity in this version, only reverting within current phase loop
+                // Or if we are in scoring player 0, go back to betting player Last?
+                if (gameState.phase === 'scoring') {
+                    gameState.phase = 'betting';
+                    gameState.activePlayerIdx = gameState.players.length - 1;
+                } else if (gameState.phase === 'betting' && gameState.round > 1) {
+                    // Hard to revert rounds because scores are committed. 
+                    // Let's stick to reverting within current batch for safety.
+                    return; 
+                } else {
+                    return;
+                }
+            }
+            renderWizard();
+        }
+
+        /* --- Math --- */
+        function calculateSorenScore(round, bet, won, bonus) {
+            const potential = round * 10;
+            const diff = Math.abs(bet - won);
+            
+            let baseScore = 0;
+            
+            // "The Soren Rule"
+            if (diff === 0) {
+                baseScore = potential;
+            } else if (diff === 1) {
+                baseScore = potential / 2;
+            } else {
+                baseScore = 0; // "Short by 2... score zero"
+            }
+            
+            return baseScore + bonus;
+        }
+
+        function calculateStandardScore(round, bet, won, bonus) {
+            // Standard Skull King (Simplified)
+            if (bet === 0) {
+                if (won === 0) return (round * 10) + bonus;
+                return (round * -10) + bonus;
+            }
+            if (bet === won) {
+                return (bet * 20) + bonus;
+            }
+            const diff = Math.abs(bet - won);
+            return (diff * -10) + bonus; // Usually no bonus if missed, but keeping simple
+        }
+
+        /* --- Table Logic --- */
+        function renderTableStructure() {
+            const thead = document.getElementById('table-head');
+            const tbody = document.getElementById('table-body');
+            
+            // Head
+            let htmlHead = `<tr><th>${t('round')}</th>`;
+            gameState.players.forEach(p => {
+                htmlHead += `<th>${p.name}</th>`;
+            });
+            htmlHead += `</tr>`;
+            thead.innerHTML = htmlHead;
+
+            // Body - Init with Round 1
+            tbody.innerHTML = '';
+            addTableRow(1);
+        }
+
+        function addTableRow(roundNum) {
+            const tbody = document.getElementById('table-body');
+            const tr = document.createElement('tr');
+            tr.id = `row-r${roundNum}`;
+            
+            let html = `<td>${roundNum}</td>`;
+            gameState.players.forEach((p, idx) => {
+                html += `<td id="cell-r${roundNum}-p${idx}">
+                    <span class="cell-bet">-</span>
+                    <span class="cell-score"></span>
+                </td>`;
+            });
+            tr.innerHTML = html;
+            tbody.appendChild(tr);
+            
+            // Scroll to bottom
+            const container = document.getElementById('scoreboard-container');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function updateScoreboardValues() {
+            // Update cells
+            gameState.players.forEach((p, pIdx) => {
+                p.scores.forEach((s, rIdx) => {
+                    const roundNum = rIdx + 1;
+                    const cell = document.getElementById(`cell-r${roundNum}-p${pIdx}`);
+                    if(cell) {
+                        const betDisplay = (s.bet !== undefined) ? `Bet: ${s.bet}` : '-';
+                        const scoreDisplay = (s.points !== undefined) ? s.points : '';
+                        
+                        // Colorize score
+                        let color = '#fff';
+                        if(s.points > 0) color = 'var(--success)';
+                        if(s.points === 0) color = '#777';
+                        
+                        cell.innerHTML = `
+                            <span class="cell-bet">${betDisplay}</span>
+                            <span class="cell-score" style="color:${color}">${scoreDisplay}</span>
+                        `;
+                    }
+                });
+            });
+
+            // Update Total Row (Optional, or we could make the header sticky with totals)
+            // For now, let's just keep the round history clear.
+        }
+
+        function highlightActiveRow() {
+            // Remove previous highlights
+            document.querySelectorAll('tr').forEach(tr => tr.classList.remove('active-round'));
+            const row = document.getElementById(`row-r${gameState.round}`);
+            if(row) row.classList.add('active-round');
+        }
+
+        // Init Setup on Load
+        initSetup();
+
+    </script>
+</body>
+</html>
