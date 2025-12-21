@@ -36,7 +36,6 @@
             overflow: hidden;
         }
 
-        /* --- Notification Bar --- */
         #notification-bar {
             position: fixed;
             top: 0; left: 0; width: 100%;
@@ -53,7 +52,6 @@
         .toast-info { background-color: var(--toast-bg-info); color: white; }
         .toast-visible { transform: translateY(0) !important; }
 
-        /* --- Header --- */
         header {
             background: #000;
             padding: 0 15px;
@@ -92,7 +90,6 @@
             font-family: 'Pirata One', cursive;
         }
 
-        /* --- Setup Screen --- */
         #setup-screen {
             padding: 20px;
             overflow-y: auto;
@@ -114,7 +111,6 @@
             gap: 10px;
         }
 
-        /* Dealer Selector Radio Style */
         .dealer-radio { display: none; }
         .dealer-label {
             color: #444;
@@ -176,7 +172,6 @@
             text-align: left;
         }
 
-        /* --- Wizard Zone --- */
         #input-zone {
             flex: 0 0 auto;
             background: #222;
@@ -212,7 +207,6 @@
             margin-top: 5px;
         }
 
-        /* Numeric Grid */
         .num-grid {
             display: flex;
             gap: 8px;
@@ -247,7 +241,6 @@
             transform: scale(0.95); 
         }
 
-        /* Summary List */
         #summary-list {
             margin-bottom: 15px;
             max-height: 150px;
@@ -267,7 +260,6 @@
         .summary-item:last-child { border-bottom: none; }
         .summary-val { color: var(--gold); }
 
-        /* Bonus Controls */
         .bonus-controls {
             display: flex;
             align-items: center;
@@ -317,7 +309,6 @@
             font-family: 'Pirata One';
         }
 
-        /* --- Scoreboard Table --- */
         #scoreboard-container {
             flex: 1;
             overflow: auto;
@@ -390,24 +381,21 @@
 
         .cell-score { font-size: 1.3rem; font-family: 'Pirata One'; font-weight: bold; display: block; margin-top: 4px;}
         
-        /* VISUAL BOX STYLES (Update v3.9) */
         .visual-score {
             display: flex;
             flex-wrap: wrap;
-            gap: 4px; /* Increased gap */
+            gap: 4px; 
             justify-content: center;
         }
         .box {
-            width: 20px; height: 20px; /* Doubled Size */
+            width: 20px; height: 20px;
             border: 1px solid var(--gold);
             display: inline-block;
         }
         .box.filled { background-color: var(--gold); }
         .box.empty { background-color: transparent; }
-        .box.over { 
-            position: relative;
-        }
-        /* Plus for Overtrick */
+        .box.over { position: relative; }
+        
         .box.over::after {
             content: '+';
             color: var(--gold);
@@ -427,7 +415,6 @@
         
         .active-round { background-color: rgba(212, 175, 55, 0.15); }
 
-        /* --- Modals --- */
         .modal {
             display: none;
             position: fixed;
@@ -484,7 +471,6 @@
 <body>
 
     <div id="notification-bar"></div>
-
     <audio id="sfx-player" preload="auto"></audio>
 
     <header>
@@ -578,8 +564,7 @@
     <datalist id="player-history"></datalist>
 
     <script>
-        /* --- CONFIG --- */
-        const STORAGE_KEY = 'skullKing_Soren_v39';
+        const STORAGE_KEY = 'skullKing_Soren_v40';
         const HISTORY_KEY = 'skullKing_Names';
         
         const SOUNDS = {
@@ -588,7 +573,6 @@
             score: { local: "coin.mp3", backup: "https://archive.org/download/Coins_201608/Coins.mp3" }
         };
 
-        /* --- NOTIFICATIONS --- */
         function showToast(msg, type = 'error') {
             const bar = document.getElementById('notification-bar');
             bar.innerText = msg;
@@ -597,7 +581,6 @@
             setTimeout(() => { bar.classList.remove('toast-visible'); }, 3000);
         }
 
-        /* --- SOUND --- */
         function playSound(type) {
             const audio = document.getElementById('sfx-player');
             const soundConfig = SOUNDS[type];
@@ -620,7 +603,6 @@
             });
         }
 
-        /* --- LOCALIZATION --- */
         let curLang = 'en';
         const I18N = {
             en: {
@@ -641,6 +623,7 @@
                 donePrefix: "Done:",
                 impossible: "Impossible! Tricks won cannot exceed round number.",
                 noBonusError: "Impossible! You cannot get Bonus Points if you won 0 tricks!",
+                roundMathError: "Sum of tricks must equal Round number",
                 review: "Review",
                 confirm: "Confirm",
                 needPirates: "You need at least 1 pirate to play!",
@@ -679,6 +662,7 @@
                 donePrefix: "Fait:",
                 impossible: "Impossible ! Le total des plis dépasse la manche.",
                 noBonusError: "Impossible ! Pas de Points Bonus avec 0 pli gagné !",
+                roundMathError: "La somme des plis doit égaler la manche",
                 review: "Vérification",
                 confirm: "Confirmer",
                 needPirates: "Il faut au moins 1 pirate pour jouer !",
@@ -736,7 +720,6 @@
             });
         }
 
-        /* --- STATE --- */
         let gameState = {
             started: false,
             players: [], 
@@ -750,10 +733,8 @@
             tempWonValue: null 
         };
 
-        /* --- INIT & SAVE --- */
         function init() {
             populateNameHistory(); 
-            
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 try {
@@ -763,6 +744,10 @@
                         document.getElementById('input-zone').style.display = 'block';
                         document.getElementById('scoreboard-container').classList.remove('hidden');
                         renderTableStructure();
+                        // v3.9 Repopulate cells properly
+                        gameState.players.forEach((p, idx) => {
+                           p.scores.forEach((s, roundIdx) => updateScoreCell(idx, roundIdx+1, s));
+                        });
                         updateTotals();
                         renderWizard();
                         
@@ -822,7 +807,6 @@
             }
         }
 
-        /* --- LOGIC --- */
         function capitalize(str) {
             if(!str) return "";
             return str.charAt(0).toUpperCase() + str.slice(1);
@@ -861,7 +845,7 @@
                     scores: [],
                     totalScore: 0
                 }));
-                gameState.useSorenRule = true; // Implied check
+                gameState.useSorenRule = true; 
                 gameState.started = true;
                 gameState.round = 1;
                 gameState.phase = 'betting';
@@ -893,7 +877,6 @@
             const scoreActions = document.getElementById('score-actions');
             const confirmSection = document.getElementById('confirm-section');
 
-            // --- CONFIRMATION STATE ---
             if(gameState.activePlayerIdx >= gameState.players.length) {
                 wizPlayer.innerText = t('review');
                 wizInstr.innerText = (gameState.phase === 'betting') ? "Check Bets" : "Check Scores";
@@ -921,7 +904,6 @@
                 return; 
             }
 
-            // --- NORMAL INPUT STATE ---
             confirmSection.classList.add('hidden');
             const player = gameState.players[gameState.activePlayerIdx];
 
@@ -1059,6 +1041,20 @@
         }
 
         function finalizePhase() {
+            // Validation for Scoring Phase
+            if (gameState.phase === 'scoring') {
+                let totalWon = 0;
+                gameState.players.forEach(p => {
+                    const s = p.scores[gameState.round-1];
+                    if (s && s.won !== undefined) totalWon += s.won;
+                });
+                
+                if (totalWon !== gameState.round) {
+                    showToast(`${t('roundMathError')} (${totalWon} / ${gameState.round})`);
+                    return; 
+                }
+            }
+
             gameState.activePlayerIdx = 0;
             
             if (gameState.phase === 'betting') {
@@ -1070,7 +1066,6 @@
                     gameState.round++;
                     gameState.phase = 'betting';
                     renderTableStructure(); 
-                    // BUG FIX: Re-populate loop handled in renderTableStructure
                     addTableRow(gameState.round);
                 } else {
                     playSound('score');
@@ -1120,7 +1115,6 @@
             }
         }
 
-        /* --- CALC --- */
         function calculateSorenScore(round, bet, won, bonus) {
             const potential = round * 10;
             const diff = Math.abs(bet - won);
@@ -1142,7 +1136,6 @@
             return (Math.abs(bet - won) * -10) + bonus; 
         }
 
-        /* --- TABLE --- */
         function renderTableStructure() {
             const thead = document.getElementById('table-head');
             const tbody = document.getElementById('table-body');
@@ -1165,11 +1158,10 @@
             tfoot.innerHTML = htmlFoot;
 
             tbody.innerHTML = '';
-            // Rebuild rows AND populate data
             for(let r=1; r<=gameState.round; r++) {
                 addTableRow(r);
             }
-            // Repopulate Bug Fix
+            // Repopulate Bug Fix 2 (ensure cells exist before updating)
             gameState.players.forEach((p, idx) => {
                 p.scores.forEach((s, rIdx) => {
                     if(rIdx < gameState.round) updateScoreCell(idx, rIdx+1, s);
@@ -1198,7 +1190,6 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        /* VISUAL GENERATION */
         function generateVisuals(bet, won) {
             if (bet === 0) {
                 let html = '<div class="visual-score"><span class="zero-dash">-</span>';
@@ -1272,7 +1263,6 @@
             if(row) row.classList.add('active-round');
         }
 
-        /* --- MODAL --- */
         function showRules() {
             document.getElementById('rules-modal').style.display = 'flex';
         }
