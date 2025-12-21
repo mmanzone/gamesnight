@@ -35,7 +35,7 @@
             overflow: hidden;
         }
 
-        /* --- Notification Bar (Inline Errors) --- */
+        /* --- Notification Bar --- */
         #notification-bar {
             position: fixed;
             top: 0; left: 0; width: 100%;
@@ -107,7 +107,29 @@
             margin: 0 auto;
         }
 
+        .player-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Dealer Selector Radio Style */
+        .dealer-radio {
+            display: none;
+        }
+        .dealer-label {
+            color: #444;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .dealer-radio:checked + .dealer-label {
+            color: var(--gold);
+            text-shadow: 0 0 5px var(--gold-dim);
+        }
+
         input[type="text"] {
+            flex: 1;
             background: #fdf5e6;
             border: 2px solid var(--gold-dim);
             padding: 12px;
@@ -180,17 +202,16 @@
             margin-top: 5px;
         }
 
-        /* 2. Scrollable Bet Bar (Single Row) */
+        /* Numeric Grid */
         .num-grid {
             display: flex;
             gap: 8px;
             margin-bottom: 10px;
-            overflow-x: auto; /* Enable horizontal scrolling */
+            overflow-x: auto;
             padding-bottom: 10px;
-            -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+            -webkit-overflow-scrolling: touch;
         }
         
-        /* Custom scrollbar for aesthetics */
         .num-grid::-webkit-scrollbar { height: 6px; }
         .num-grid::-webkit-scrollbar-track { background: #333; }
         .num-grid::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
@@ -205,8 +226,6 @@
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.1s;
-            
-            /* Fixed width for flex items */
             flex: 0 0 60px; 
             width: 60px;
         }
@@ -218,7 +237,7 @@
             transform: scale(0.95); 
         }
 
-        /* Summary List for Confirmation */
+        /* Summary List */
         #summary-list {
             margin-bottom: 15px;
             max-height: 150px;
@@ -313,10 +332,9 @@
             font-size: 1.2rem;
             min-width: 80px;
             border-bottom: 1px solid var(--gold-dim);
-            border-top: 4px solid transparent; /* placeholder for active frame */
+            border-top: 4px solid transparent;
         }
         
-        /* 3. Dealer/Leader Frame Style */
         th.dealer-frame {
             border: 2px solid var(--gold);
             background: #222;
@@ -325,7 +343,6 @@
             box-shadow: 0 0 10px var(--gold-dim);
         }
         
-        /* Icon for dealer */
         .dealer-icon { font-size: 0.8rem; margin-right: 5px; color: var(--gold); display: none;}
         th.dealer-frame .dealer-icon { display: inline-block; }
 
@@ -366,7 +383,7 @@
         
         .active-round { background-color: rgba(212, 175, 55, 0.15); }
 
-        /* --- Modals --- */
+        /* --- Modals (Rules & Ranking) --- */
         .modal {
             display: none;
             position: fixed;
@@ -391,8 +408,26 @@
             text-align: left;
         }
 
-        .modal h2 { margin-top: 0; color: var(--gold); font-family: 'Pirata One'; text-align: center;}
+        .modal h2 { margin-top: 0; color: var(--gold); font-family: 'Pirata One'; text-align: center; font-size: 2rem;}
         
+        /* Ranking Specifics */
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #333;
+            font-family: 'Pirata One', cursive;
+            font-size: 1.5rem;
+        }
+        .rank-pos { width: 30px; color: #888; }
+        .rank-name { flex: 1; text-align: left; padding-left: 10px; }
+        .rank-score { color: var(--gold); font-weight: bold; }
+        
+        .rank-1 .rank-pos { color: var(--gold); font-size: 1.8rem; }
+        .rank-1 .rank-name { color: var(--gold); font-size: 1.8rem; }
+        .rank-1::after { content: '🏆'; font-size: 1.5rem; margin-left: 10px; }
+
         .rule-item {
             display: flex;
             justify-content: space-between;
@@ -427,21 +462,19 @@
         </div>
     </div>
 
+    <div id="ranking-modal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <h2 id="rank-title">Captain's Log</h2>
+            <div id="ranking-list"></div>
+            <button class="btn-main" onclick="resetGame()" style="margin-top:20px;">Start New Game</button>
+        </div>
+    </div>
+
     <div id="setup-screen">
         <h2 id="setup-title" style="color:var(--gold); font-family:'Pirata One'; font-size:2rem;">Ship Manifest</h2>
         <div class="input-list" id="player-inputs"></div>
         <button class="btn-add" onclick="addPlayerInput()">+ <span id="txt-add">Add Pirate</span></button>
         
-        <div style="margin-top: 20px; text-align: left; background: #222; padding: 10px; border-radius: 4px; border: 1px solid #444;">
-            <label style="display:flex; align-items:center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" id="use-soren-rule" checked style="width: auto;">
-                <span id="txt-rule" style="color: var(--gold)">Use Soren's Scoring Rule</span>
-            </label>
-            <small style="color:#aaa; display:block; margin-top:5px; line-height:1.4;" id="txt-rule-desc">
-                Success: Round x 10. <br>Off by 1: Half points. <br>Off by 2+: Zero.
-            </small>
-        </div>
-
         <button class="btn-main" onclick="startGame()" id="btn-start">Set Sail!</button>
         <div id="resume-msg" class="hidden" style="margin-top:10px; color: var(--gold)">Previous game found!</div>
     </div>
@@ -490,29 +523,26 @@
         </table>
     </div>
 
+    <datalist id="player-history"></datalist>
 
     <script>
         /* --- CONFIG --- */
-        const STORAGE_KEY = 'skullKing_Soren_v36';
+        const STORAGE_KEY = 'skullKing_Soren_v37';
+        const HISTORY_KEY = 'skullKing_Names';
         
-        // Sound Configuration
         const SOUNDS = {
             start: { local: "argh.mp3", backup: "https://archive.org/download/PirateArrr/Pirate%20Arrr.mp3" },
             bet:   { local: "sword.mp3", backup: "https://archive.org/download/SwordSwoosh/SwordSwoosh.mp3" },
             score: { local: "coin.mp3", backup: "https://archive.org/download/Coins_201608/Coins.mp3" }
         };
 
-        /* --- NOTIFICATIONS (Replaces Alerts) --- */
+        /* --- NOTIFICATIONS --- */
         function showToast(msg, type = 'error') {
             const bar = document.getElementById('notification-bar');
             bar.innerText = msg;
             bar.className = (type === 'error') ? 'toast-error' : 'toast-info';
             bar.classList.add('toast-visible');
-            
-            // Auto hide after 3 seconds
-            setTimeout(() => {
-                bar.classList.remove('toast-visible');
-            }, 3000);
+            setTimeout(() => { bar.classList.remove('toast-visible'); }, 3000);
         }
 
         /* --- SOUND --- */
@@ -544,8 +574,6 @@
             en: {
                 add: "Add Pirate",
                 start: "Set Sail!",
-                rule: "Use Soren's Scoring Rule",
-                ruleDesc: "Success: Round x 10. <br>Off by 1: Half pts. <br>Off by 2+: Zero.",
                 betInstr: "Place bet for",
                 resInstr: "Tricks won by",
                 bonus: "Bonus Points",
@@ -565,6 +593,7 @@
                 confirm: "Confirm",
                 needPirates: "You need at least 1 pirate to play!",
                 selectTricks: "Select tricks won first",
+                rankTitle: "Captain's Log",
                 rules: [
                     ["Suits", "Yellow, Green, Purple (Low)"],
                     ["Jolly Roger", "Black (High Suit)"],
@@ -583,8 +612,6 @@
             fr: {
                 add: "Ajouter un Pirate",
                 start: "Hisser les voiles !",
-                rule: "Utiliser la règle de Soren",
-                ruleDesc: "Succès : Manche x 10. <br>Écart de 1 : Moitié pts. <br>Écart 2+ : Zéro.",
                 betInstr: "Mise pour",
                 resInstr: "Plis faits par",
                 bonus: "Points Bonus",
@@ -604,6 +631,7 @@
                 confirm: "Confirmer",
                 needPirates: "Il faut au moins 1 pirate pour jouer !",
                 selectTricks: "Sélectionnez les plis gagnés d'abord",
+                rankTitle: "Journal de Bord",
                 rules: [
                     ["Couleurs", "Jaune, Vert, Violet (Bas)"],
                     ["Jolly Roger", "Noir (Atout)"],
@@ -632,14 +660,13 @@
         function updateUIText() {
             document.getElementById('txt-add').innerText = t('add');
             document.getElementById('btn-start').innerText = t('start');
-            document.getElementById('txt-rule').innerText = t('rule');
-            document.getElementById('txt-rule-desc').innerHTML = t('ruleDesc');
             document.getElementById('txt-bonus').innerText = t('bonus');
             document.getElementById('btn-save').innerText = t('save');
             document.getElementById('txt-undo').innerText = t('undo');
             document.getElementById('setup-title').innerText = t('manifest');
             document.getElementById('modal-head').innerText = t('modalHead');
             document.getElementById('txt-confirm').innerText = t('confirm');
+            document.getElementById('rank-title').innerText = t('rankTitle');
             
             if(gameState.started) {
                 renderWizard();
@@ -669,12 +696,15 @@
             phase: 'betting', 
             activePlayerIdx: 0,
             useSorenRule: true,
+            initialDealerIdx: 0, // NEW: Tracks who starts R1
             tempBonus: 0,
             tempWonValue: null 
         };
 
         /* --- INIT & SAVE --- */
         function init() {
+            populateNameHistory(); // Load autocomplete options
+            
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 try {
@@ -689,10 +719,15 @@
                         });
                         updateTotals();
                         renderWizard();
+                        
+                        // Check if game was already finished (reloaded on rank screen)
+                        if(gameState.round >= gameState.maxRounds && gameState.phase === 'finished') {
+                            showRanking();
+                        }
                     } else {
                         const container = document.getElementById('player-inputs');
                         container.innerHTML = '';
-                        gameState.players.forEach(p => addPlayerInput(p.name));
+                        gameState.players.forEach((p, idx) => addPlayerInput(p.name, idx === 0));
                         document.getElementById('resume-msg').classList.remove('hidden');
                     }
                 } catch(e) {
@@ -705,10 +740,30 @@
             updateUIText();
         }
 
+        function populateNameHistory() {
+            const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            const datalist = document.getElementById('player-history');
+            datalist.innerHTML = '';
+            history.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                datalist.appendChild(opt);
+            });
+        }
+
+        function saveNameHistory(names) {
+            let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            names.forEach(n => {
+                if(!history.includes(n)) history.push(n);
+            });
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            populateNameHistory();
+        }
+
         function setupNewGame() {
             const container = document.getElementById('player-inputs');
             container.innerHTML = '';
-            for(let i=0; i<4; i++) addPlayerInput();
+            for(let i=0; i<4; i++) addPlayerInput("", i === 0);
         }
 
         function saveState() {
@@ -728,17 +783,22 @@
             return str.charAt(0).toUpperCase() + str.slice(1);
         }
 
-        function addPlayerInput(val = '') {
+        function addPlayerInput(val = '', isFirst = false) {
+            const container = document.getElementById('player-inputs');
             const div = document.createElement('div');
-            const num = document.getElementById('player-inputs').children.length + 1;
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.className = 'p-name';
-            input.placeholder = `Pirate ${num}`;
-            input.value = val;
-            input.onblur = function() { this.value = capitalize(this.value); };
-            div.appendChild(input);
-            document.getElementById('player-inputs').appendChild(div);
+            div.className = 'player-row';
+            const num = container.children.length + 1;
+            
+            // Radio for Dealer
+            const radioId = `dealer-radio-${num}`;
+            const checked = isFirst ? 'checked' : '';
+            
+            div.innerHTML = `
+                <input type="radio" name="starting-dealer" id="${radioId}" class="dealer-radio" value="${num-1}" ${checked}>
+                <label for="${radioId}" class="dealer-label" title="Start as Dealer"><i class="fas fa-crown"></i></label>
+                <input type="text" class="p-name" placeholder="Pirate ${num}" value="${val}" list="player-history" onblur="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)">
+            `;
+            container.appendChild(div);
         }
 
         function startGame() {
@@ -747,17 +807,28 @@
             
             if(names.length < 1) return showToast(t('needPirates'));
 
+            // Get selected dealer index
+            const dealerRadio = document.querySelector('input[name="starting-dealer"]:checked');
+            const dealerVal = dealerRadio ? parseInt(dealerRadio.value) : 0;
+            // Adjust if user removed rows above selection (fallback to 0)
+            const dealerIdx = (dealerVal < names.length) ? dealerVal : 0;
+
             if (!gameState.started || gameState.players.length === 0) {
                  gameState.players = names.map(n => ({
                     name: n,
                     scores: [],
                     totalScore: 0
                 }));
-                gameState.useSorenRule = document.getElementById('use-soren-rule').checked;
+                // Soren rule implied true
+                gameState.useSorenRule = true;
                 gameState.started = true;
                 gameState.round = 1;
                 gameState.phase = 'betting';
                 gameState.activePlayerIdx = 0;
+                gameState.initialDealerIdx = dealerIdx;
+                
+                // Save names to history
+                saveNameHistory(names);
             }
 
             document.getElementById('setup-screen').classList.add('hidden');
@@ -771,6 +842,9 @@
         }
 
         function renderWizard() {
+            // Hide wizard if game finished
+            if(gameState.phase === 'finished') return;
+
             const wizPlayer = document.getElementById('wiz-player');
             const wizInstr = document.getElementById('wiz-instruction');
             const wizRound = document.getElementById('wiz-round');
@@ -839,8 +913,6 @@
                 wizInstr.innerText = `${t('resInstr')} ${player.name}`;
                 betControls.classList.add('hidden');
                 
-                // 5. Conditional Bonus Display
-                // If tempWonValue is > 0 (and not null), show bonus. Else hide.
                 if (gameState.tempWonValue !== null && gameState.tempWonValue > 0) {
                     bonusSection.classList.remove('hidden');
                 } else {
@@ -865,18 +937,14 @@
                 nextStep();
             } else {
                 gameState.tempWonValue = val; 
-                
-                // If 0 is clicked, ensure bonus is reset and hidden
                 if (val === 0) {
                     gameState.tempBonus = 0;
                     document.getElementById('bonus-section').classList.add('hidden');
                 } else {
                     document.getElementById('bonus-section').classList.remove('hidden');
                 }
-
                 saveState();
                 
-                // Visual update of buttons
                 const btns = document.querySelectorAll('.num-btn');
                 btns.forEach(b => {
                     if (parseInt(b.innerText) === val) {
@@ -958,16 +1026,38 @@
                     playSound('score');
                     gameState.round++;
                     gameState.phase = 'betting';
-                    renderTableStructure(); // Update frame
+                    renderTableStructure(); 
                     addTableRow(gameState.round);
                 } else {
                     playSound('score');
-                    showToast("Game Over! Check totals.", 'info');
+                    gameState.phase = 'finished'; // New phase to lock wizard
                     document.getElementById('input-zone').style.display = 'none';
+                    showRanking();
                 }
             }
             saveState();
             renderWizard();
+        }
+
+        function showRanking() {
+            const list = document.getElementById('ranking-list');
+            list.innerHTML = '';
+            
+            // Clone and sort
+            const sortedPlayers = [...gameState.players].sort((a,b) => b.totalScore - a.totalScore);
+            
+            sortedPlayers.forEach((p, idx) => {
+                const div = document.createElement('div');
+                div.className = `ranking-item rank-${idx+1}`;
+                div.innerHTML = `
+                    <div class="rank-pos">${idx+1}</div>
+                    <div class="rank-name">${p.name}</div>
+                    <div class="rank-score">${p.totalScore}</div>
+                `;
+                list.appendChild(div);
+            });
+            
+            document.getElementById('ranking-modal').style.display = 'flex';
         }
 
         function revertAction() {
@@ -1018,12 +1108,10 @@
             let htmlHead = `<tr><th>${t('round')}</th>`;
             let htmlFoot = `<tr><td>${t('total')}</td>`;
             
-            // 3. Dealer/Leader Logic: (Round-1) % NumPlayers
-            // e.g. R1=P1, R2=P2...
-            const leaderIdx = (gameState.round - 1) % gameState.players.length;
+            // Dealer Logic with Offset
+            const leaderIdx = (gameState.round - 1 + gameState.initialDealerIdx) % gameState.players.length;
 
             gameState.players.forEach((p, idx) => {
-                // Add class if leader
                 const isLeader = (idx === leaderIdx) ? 'dealer-frame' : '';
                 htmlHead += `<th class="${isLeader}"><span class="dealer-icon"><i class="fas fa-crown"></i></span>${p.name.substring(0,8)}</th>`;
                 htmlFoot += `<td id="total-p${idx}">0</td>`;
@@ -1068,7 +1156,6 @@
             let betDisplay = '-';
             if (data.bet !== undefined && data.bet !== null) {
                 betDisplay = `${t('betPrefix')} ${data.bet}`;
-                // 2. Scoreboard Update: Show DONE value
                 if (data.won !== undefined && data.won !== null) {
                     betDisplay += ` | ${t('donePrefix')} ${data.won}`;
                 }
@@ -1076,17 +1163,16 @@
 
             const scoreDisplay = (data.points !== undefined) ? data.points : '';
             
-            // 2. Color Logic: Darker if mismatch
             let color = '#fff';
             if (data.points !== undefined) {
                 if (data.points >= 0) {
                     if (data.won !== undefined && data.bet === data.won) {
-                        color = 'var(--gold)'; // Perfect Match
+                        color = 'var(--gold)'; 
                     } else {
-                        color = 'var(--gold-dim)'; // Partial points (mismatch)
+                        color = 'var(--gold-dim)'; 
                     }
                 } else {
-                    color = '#888'; // Negative
+                    color = '#888'; 
                 }
             }
 
