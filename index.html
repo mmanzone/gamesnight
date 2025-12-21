@@ -92,7 +92,6 @@
             font-family: 'Pirata One', cursive;
         }
 
-        /* Setup & Inputs */
         #setup-screen { padding: 20px; overflow-y: auto; text-align: center; flex: 1; }
         .input-list { display: flex; flex-direction: column; gap: 10px; max-width: 400px; margin: 0 auto; }
         .player-row { display: flex; align-items: center; gap: 10px; }
@@ -106,7 +105,6 @@
         .btn-add-row:hover { opacity: 1; }
         .btn-add-placeholder { flex: 1; background: transparent; border: 2px dashed #555; padding: 12px; font-size: 1.1rem; border-radius: 4px; color: #aaa; font-family: 'Pirata One', cursive; text-align: left; }
 
-        /* Wizard */
         #input-zone { flex: 0 0 auto; background: #222; padding: 15px; border-bottom: 1px solid var(--gold-dim); display: none; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 10; }
         .wizard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .player-turn { font-family: 'Pirata One', cursive; font-size: 2.8rem; color: var(--gold); line-height: 1; text-shadow: 2px 2px 0px #000; }
@@ -132,7 +130,6 @@
         .btn-revert { background: transparent; color: #888; width: 60px; font-size: 1.2rem; border: 1px solid #444; border-radius: 4px; cursor: pointer; }
         .btn-confirm { flex: 1; background: var(--gold); color: #000; font-weight: bold; border: none; border-radius: 4px; padding: 12px; font-size: 1.2rem; font-family: 'Pirata One'; }
 
-        /* Scoreboard */
         #scoreboard-container { flex: 1; overflow: auto; position: relative; }
         table { width: 100%; border-collapse: collapse; font-size: 0.9rem; text-align: center; }
         th { background: #000; color: var(--gold); position: sticky; top: 0; padding: 12px 5px; z-index: 2; font-family: 'Pirata One', cursive; font-size: 1.2rem; min-width: 80px; border-bottom: 1px solid var(--gold-dim); border-top: 4px solid transparent; }
@@ -146,29 +143,22 @@
         td { padding: 8px 4px; border-bottom: 1px solid #333; border-right: 1px solid #333; height: 55px; }
         .cell-score { font-size: 1.3rem; font-family: 'Pirata One'; font-weight: bold; display: block; margin-top: 4px;}
         
-        /* Visuals (Circles v4.3) */
+        /* CIRCLE VISUALS (v4.4) */
         .visual-score { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
         .box { 
             width: 18px; height: 18px; 
             border: 1px solid var(--gold); 
             display: inline-block;
-            border-radius: 50%; /* CIRCLE */
+            border-radius: 50%; /* Circle */
         }
         .box.filled { background-color: var(--gold); }
         .box.empty { background-color: transparent; }
         .box.over { position: relative; }
-        /* + Sign for Overtrick */
-        .box.over::after { 
-            content: '+'; color: var(--gold); 
-            font-size: 18px; line-height: 16px; 
-            position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-weight: bold; 
-        }
-        /* New Dash Style */
+        .box.over::after { content: '+'; color: var(--gold); font-size: 18px; line-height: 16px; position: absolute; top: 0; left: 0; width: 100%; text-align: center; font-weight: bold; }
         .zero-dash { display: inline-block; font-size: 20px; line-height: 18px; color: #888; font-family: 'Pirata One'; }
         
         .active-round { background-color: rgba(212, 175, 55, 0.15); }
 
-        /* Modals */
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: var(--dark-overlay); justify-content: center; align-items: center; padding: 20px; }
         .modal-content { background: var(--bg-color); border: 2px solid var(--gold); padding: 20px; border-radius: 8px; max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto; text-align: left; }
         .modal h2 { margin-top: 0; color: var(--gold); font-family: 'Pirata One'; text-align: center; font-size: 2rem;}
@@ -295,7 +285,7 @@
     <datalist id="player-history"></datalist>
 
     <script>
-        const STORAGE_KEY = 'skullKing_Soren_v43';
+        const STORAGE_KEY = 'skullKing_Soren_v44';
         const HISTORY_KEY = 'skullKing_Names';
         
         const SOUNDS = {
@@ -508,7 +498,6 @@
             updateUIText();
         }
 
-        // FORCE RECALCULATION
         function recalculateAllTotals() {
             gameState.players.forEach(p => {
                 p.totalScore = p.scores.reduce((sum, s) => sum + (Number(s.points) || 0), 0);
@@ -769,6 +758,7 @@
             }
 
             recalculateAllTotals();
+            
             updateScoreCell(gameState.activePlayerIdx, gameState.round, roundData);
             
             gameState.tempWonValue = null;
@@ -809,6 +799,8 @@
                     gameState.round++;
                     gameState.phase = 'betting';
                     renderTableStructure(); 
+                    // Calculate totals on new round start to ensure table is fresh
+                    recalculateAllTotals();
                     addTableRow(gameState.round);
                 } else {
                     playSound('score');
@@ -924,7 +916,8 @@
             gameState.players.forEach((p, idx) => {
                 const isLeader = (idx === leaderIdx) ? 'dealer-frame' : '';
                 htmlHead += `<th class="${isLeader}"><span class="dealer-icon"><i class="fas fa-crown"></i></span>${p.name.substring(0,8)}</th>`;
-                htmlFoot += `<td id="total-p${idx}">0</td>`;
+                // BUG FIX: Inject Current Total directly instead of waiting for update
+                htmlFoot += `<td id="total-p${idx}">${p.totalScore || 0}</td>`;
             });
             htmlHead += `</tr>`;
             htmlFoot += `</tr>`;
