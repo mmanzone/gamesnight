@@ -199,7 +199,6 @@
         .summary-item:last-child { border-bottom: none; }
         .summary-val { color: var(--gold); }
 
-
         /* Bonus Controls */
         .bonus-controls {
             display: flex;
@@ -443,7 +442,7 @@
 
     <script>
         /* --- CONFIG --- */
-        const STORAGE_KEY = 'skullKingSoren_v33';
+        const STORAGE_KEY = 'skullKing_Soren_Final';
         const FALLBACK_SOUND = "https://archive.org/download/PirateArrr/Pirate%20Arrr.mp3";
         
         /* --- SOUND --- */
@@ -589,7 +588,8 @@
             phase: 'betting', 
             activePlayerIdx: 0,
             useSorenRule: true,
-            tempBonus: 0
+            tempBonus: 0,
+            tempWonValue: null // Persist the selection even if not saved
         };
 
         /* --- INIT & SAVE --- */
@@ -699,7 +699,6 @@
             const confirmSection = document.getElementById('confirm-section');
 
             // --- CONFIRMATION STATE ---
-            // If the active index is beyond the last player, show Confirmation Screen
             if(gameState.activePlayerIdx >= gameState.players.length) {
                 wizPlayer.innerText = t('review');
                 wizInstr.innerText = (gameState.phase === 'betting') ? "Check Bets" : "Check Scores";
@@ -724,8 +723,7 @@
                     item.innerHTML = `<span>${p.name}</span><span class="summary-val">${valDisplay}</span>`;
                     list.appendChild(item);
                 });
-
-                return; // Stop here, waiting for confirm
+                return; 
             }
 
             // --- NORMAL INPUT STATE ---
@@ -741,6 +739,9 @@
                 const btn = document.createElement('button');
                 btn.className = 'num-btn';
                 btn.innerText = i;
+                // Pre-select if saved in tempWonValue
+                if (gameState.tempWonValue === i) btn.classList.add('selected');
+                
                 btn.onclick = () => handleNumberClick(i);
                 numGrid.appendChild(btn);
             }
@@ -761,14 +762,12 @@
                 bonusSection.classList.remove('hidden'); 
                 numGrid.classList.remove('hidden');
                 
-                gameState.tempBonus = 0;
-                document.getElementById('bonus-display').innerText = "0";
+                // Restore bonus display
+                document.getElementById('bonus-display').innerText = gameState.tempBonus;
             }
             
             highlightActiveRow();
         }
-
-        let tempWonValue = null;
 
         function handleNumberClick(val) {
             const player = gameState.players[gameState.activePlayerIdx];
@@ -781,7 +780,9 @@
                 saveState();
                 nextStep();
             } else {
-                tempWonValue = val;
+                gameState.tempWonValue = val; // Persistent selection
+                saveState();
+                
                 const btns = document.querySelectorAll('.num-btn');
                 btns.forEach(b => {
                     if (parseInt(b.innerText) === val) {
@@ -796,10 +797,11 @@
         function adjustBonus(amount) {
             gameState.tempBonus += amount;
             document.getElementById('bonus-display').innerText = gameState.tempBonus;
+            saveState();
         }
 
         function confirmResult() {
-            if (tempWonValue === null) return alert("Select tricks won first");
+            if (gameState.tempWonValue === null) return alert("Select tricks won first");
             
             let tricksSoFar = 0;
             gameState.players.forEach((p, idx) => {
@@ -807,24 +809,25 @@
                     tricksSoFar += (p.scores[gameState.round-1].won || 0);
                 }
             });
-            tricksSoFar += tempWonValue;
+            tricksSoFar += gameState.tempWonValue;
 
             if (tricksSoFar > gameState.round) {
                 alert(t('impossible') + ` (Current: ${tricksSoFar} vs Round: ${gameState.round})`);
                 return;
             }
 
-            if (tempWonValue === 0 && gameState.tempBonus !== 0) {
+            if (gameState.tempWonValue === 0 && gameState.tempBonus !== 0) {
                 alert(t('noBonusError'));
                 gameState.tempBonus = 0;
                 document.getElementById('bonus-display').innerText = "0";
+                saveState();
                 return;
             }
 
             const player = gameState.players[gameState.activePlayerIdx];
             const roundData = player.scores[gameState.round-1];
             
-            roundData.won = tempWonValue;
+            roundData.won = gameState.tempWonValue;
             roundData.bonus = gameState.tempBonus;
             
             if (gameState.useSorenRule) {
@@ -837,16 +840,17 @@
             
             updateScoreCell(gameState.activePlayerIdx, gameState.round, roundData);
             updateTotals();
+            
+            // Clear temps for next player
+            gameState.tempWonValue = null;
+            gameState.tempBonus = 0;
             saveState();
             
-            tempWonValue = null;
             nextStep();
         }
 
         function nextStep() {
             gameState.activePlayerIdx++;
-            // Check if we hit end of players. 
-            // If so, renderWizard will handle the "Confirmation" screen.
             saveState();
             renderWizard();
         }
@@ -878,6 +882,17 @@
         function revertAction() {
             if (gameState.activePlayerIdx > 0) {
                 gameState.activePlayerIdx--;
+                
+                // If we are reverting a scoring step, we need to repopulate the temps
+                if (gameState.phase === 'scoring') {
+                   const prevPlayer = gameState.players[gameState.activePlayerIdx];
+                   const data = prevPlayer.scores[gameState.round-1];
+                   if (data && data.won !== undefined) {
+                       gameState.tempWonValue = data.won;
+                       gameState.tempBonus = data.bonus;
+                   }
+                }
+                saveState();
                 renderWizard();
             }
         }
