@@ -114,14 +114,13 @@
         }
 
         /* Dealer Selector Radio Style */
-        .dealer-radio {
-            display: none;
-        }
+        .dealer-radio { display: none; }
         .dealer-label {
             color: #444;
             font-size: 1.5rem;
             cursor: pointer;
             transition: color 0.2s;
+            min-width: 25px; /* align with text */
         }
         .dealer-radio:checked + .dealer-label {
             color: var(--gold);
@@ -155,15 +154,26 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
         
-        .btn-add {
-            background: transparent;
-            color: #aaa;
-            padding: 10px;
-            border: 1px dashed #555;
+        /* Updated Add Button to match Input alignment */
+        .btn-add-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             margin-top: 5px;
+            opacity: 0.7;
             cursor: pointer;
-            width: 100%;
-            max-width: 400px;
+        }
+        .btn-add-row:hover { opacity: 1; }
+        .btn-add-placeholder {
+            flex: 1;
+            background: transparent;
+            border: 2px dashed #555;
+            padding: 12px;
+            font-size: 1.1rem;
+            border-radius: 4px;
+            color: #aaa;
+            font-family: 'Pirata One', cursive;
+            text-align: left;
         }
 
         /* --- Wizard Zone --- */
@@ -378,12 +388,46 @@
             height: 55px;
         }
 
-        .cell-bet { font-size: 0.75rem; color: #888; display: block; text-transform: uppercase; letter-spacing: 0.5px;}
-        .cell-score { font-size: 1.3rem; font-family: 'Pirata One'; font-weight: bold; display: block;}
+        .cell-score { font-size: 1.3rem; font-family: 'Pirata One'; font-weight: bold; display: block; margin-top: 4px;}
+        
+        /* VISUAL BOX STYLES */
+        .visual-score {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            justify-content: center;
+        }
+        .box {
+            width: 10px; height: 10px;
+            border: 1px solid var(--gold);
+            display: inline-block;
+        }
+        .box.filled { background-color: var(--gold); }
+        .box.empty { background-color: transparent; }
+        .box.over { 
+            position: relative;
+        }
+        /* Cross for Overtrick */
+        .box.over::after {
+            content: '×';
+            color: var(--gold);
+            font-size: 12px;
+            line-height: 8px;
+            position: absolute;
+            top: 0; left: 0; width: 100%; text-align: center;
+        }
+        .zero-badge {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 1px solid var(--gold);
+            border-radius: 50%;
+            font-size: 10px; line-height: 14px;
+            color: var(--gold);
+        }
         
         .active-round { background-color: rgba(212, 175, 55, 0.15); }
 
-        /* --- Modals (Rules & Ranking) --- */
+        /* --- Modals --- */
         .modal {
             display: none;
             position: fixed;
@@ -410,7 +454,6 @@
 
         .modal h2 { margin-top: 0; color: var(--gold); font-family: 'Pirata One'; text-align: center; font-size: 2rem;}
         
-        /* Ranking Specifics */
         .ranking-item {
             display: flex;
             align-items: center;
@@ -423,7 +466,6 @@
         .rank-pos { width: 30px; color: #888; }
         .rank-name { flex: 1; text-align: left; padding-left: 10px; }
         .rank-score { color: var(--gold); font-weight: bold; }
-        
         .rank-1 .rank-pos { color: var(--gold); font-size: 1.8rem; }
         .rank-1 .rank-name { color: var(--gold); font-size: 1.8rem; }
         .rank-1::after { content: '🏆'; font-size: 1.5rem; margin-left: 10px; }
@@ -473,8 +515,20 @@
     <div id="setup-screen">
         <h2 id="setup-title" style="color:var(--gold); font-family:'Pirata One'; font-size:2rem;">Ship Manifest</h2>
         <div class="input-list" id="player-inputs"></div>
-        <button class="btn-add" onclick="addPlayerInput()">+ <span id="txt-add">Add Pirate</span></button>
         
+        <div class="input-list" style="margin-top: 10px;">
+            <div class="btn-add-row" onclick="addPlayerInput()">
+                <div style="width: 25px;"></div> <div class="btn-add-placeholder">+ <span id="txt-add">Add Pirate</span></div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; text-align: left; background: #222; padding: 10px; border-radius: 4px; border: 1px solid #444;">
+            <label style="display:flex; align-items:center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" id="use-soren-rule" checked style="width: auto;">
+                <span id="txt-rule" style="color: var(--gold)">Use Soren's Scoring Rule</span>
+            </label>
+        </div>
+
         <button class="btn-main" onclick="startGame()" id="btn-start">Set Sail!</button>
         <div id="resume-msg" class="hidden" style="margin-top:10px; color: var(--gold)">Previous game found!</div>
     </div>
@@ -497,11 +551,11 @@
                 <span id="bonus-display">0</span>
                 <button class="bonus-btn" onclick="adjustBonus(10)">+</button>
             </div>
-            
-            <div class="action-row">
-                <button class="btn-revert" onclick="revertAction()"><i class="fas fa-undo"></i></button>
-                <button class="btn-confirm" onclick="confirmResult()" id="btn-save">Save Results</button>
-            </div>
+        </div>
+        
+        <div id="score-actions" class="action-row hidden">
+            <button class="btn-revert" onclick="revertAction()"><i class="fas fa-undo"></i></button>
+            <button class="btn-confirm" onclick="confirmResult()" id="btn-save">Save Results</button>
         </div>
         
         <div id="confirm-section" class="hidden">
@@ -527,7 +581,7 @@
 
     <script>
         /* --- CONFIG --- */
-        const STORAGE_KEY = 'skullKing_Soren_v37';
+        const STORAGE_KEY = 'skullKing_Soren_v38';
         const HISTORY_KEY = 'skullKing_Names';
         
         const SOUNDS = {
@@ -696,14 +750,14 @@
             phase: 'betting', 
             activePlayerIdx: 0,
             useSorenRule: true,
-            initialDealerIdx: 0, // NEW: Tracks who starts R1
+            initialDealerIdx: 0, 
             tempBonus: 0,
             tempWonValue: null 
         };
 
         /* --- INIT & SAVE --- */
         function init() {
-            populateNameHistory(); // Load autocomplete options
+            populateNameHistory(); 
             
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
@@ -720,7 +774,6 @@
                         updateTotals();
                         renderWizard();
                         
-                        // Check if game was already finished (reloaded on rank screen)
                         if(gameState.round >= gameState.maxRounds && gameState.phase === 'finished') {
                             showRanking();
                         }
@@ -789,7 +842,6 @@
             div.className = 'player-row';
             const num = container.children.length + 1;
             
-            // Radio for Dealer
             const radioId = `dealer-radio-${num}`;
             const checked = isFirst ? 'checked' : '';
             
@@ -807,10 +859,8 @@
             
             if(names.length < 1) return showToast(t('needPirates'));
 
-            // Get selected dealer index
             const dealerRadio = document.querySelector('input[name="starting-dealer"]:checked');
             const dealerVal = dealerRadio ? parseInt(dealerRadio.value) : 0;
-            // Adjust if user removed rows above selection (fallback to 0)
             const dealerIdx = (dealerVal < names.length) ? dealerVal : 0;
 
             if (!gameState.started || gameState.players.length === 0) {
@@ -819,15 +869,13 @@
                     scores: [],
                     totalScore: 0
                 }));
-                // Soren rule implied true
-                gameState.useSorenRule = true;
+                gameState.useSorenRule = document.getElementById('use-soren-rule').checked;
                 gameState.started = true;
                 gameState.round = 1;
                 gameState.phase = 'betting';
                 gameState.activePlayerIdx = 0;
                 gameState.initialDealerIdx = dealerIdx;
                 
-                // Save names to history
                 saveNameHistory(names);
             }
 
@@ -842,7 +890,6 @@
         }
 
         function renderWizard() {
-            // Hide wizard if game finished
             if(gameState.phase === 'finished') return;
 
             const wizPlayer = document.getElementById('wiz-player');
@@ -851,6 +898,7 @@
             const numGrid = document.getElementById('number-grid');
             const bonusSection = document.getElementById('bonus-section');
             const betControls = document.getElementById('bet-controls');
+            const scoreActions = document.getElementById('score-actions');
             const confirmSection = document.getElementById('confirm-section');
 
             // --- CONFIRMATION STATE ---
@@ -862,6 +910,7 @@
                 numGrid.classList.add('hidden');
                 bonusSection.classList.add('hidden');
                 betControls.classList.add('hidden');
+                scoreActions.classList.add('hidden');
                 confirmSection.classList.remove('hidden');
 
                 const list = document.getElementById('summary-list');
@@ -903,6 +952,7 @@
             if (gameState.phase === 'betting') {
                 wizInstr.innerText = `${t('betInstr')} ${t('roundFull')} ${gameState.round}`;
                 bonusSection.classList.add('hidden');
+                scoreActions.classList.add('hidden');
                 
                 if(gameState.activePlayerIdx > 0) {
                     betControls.classList.remove('hidden');
@@ -912,6 +962,7 @@
             } else {
                 wizInstr.innerText = `${t('resInstr')} ${player.name}`;
                 betControls.classList.add('hidden');
+                scoreActions.classList.remove('hidden'); // Buttons always visible in scoring
                 
                 if (gameState.tempWonValue !== null && gameState.tempWonValue > 0) {
                     bonusSection.classList.remove('hidden');
@@ -1030,7 +1081,7 @@
                     addTableRow(gameState.round);
                 } else {
                     playSound('score');
-                    gameState.phase = 'finished'; // New phase to lock wizard
+                    gameState.phase = 'finished'; 
                     document.getElementById('input-zone').style.display = 'none';
                     showRanking();
                 }
@@ -1043,7 +1094,6 @@
             const list = document.getElementById('ranking-list');
             list.innerHTML = '';
             
-            // Clone and sort
             const sortedPlayers = [...gameState.players].sort((a,b) => b.totalScore - a.totalScore);
             
             sortedPlayers.forEach((p, idx) => {
@@ -1108,7 +1158,6 @@
             let htmlHead = `<tr><th>${t('round')}</th>`;
             let htmlFoot = `<tr><td>${t('total')}</td>`;
             
-            // Dealer Logic with Offset
             const leaderIdx = (gameState.round - 1 + gameState.initialDealerIdx) % gameState.players.length;
 
             gameState.players.forEach((p, idx) => {
@@ -1138,7 +1187,7 @@
             let html = `<td>${roundNum}</td>`;
             gameState.players.forEach((p, idx) => {
                 html += `<td id="cell-r${roundNum}-p${idx}">
-                    <span class="cell-bet">-</span>
+                    <span class="cell-bet"></span>
                     <span class="cell-score"></span>
                 </td>`;
             });
@@ -1149,16 +1198,55 @@
             container.scrollTop = container.scrollHeight;
         }
 
+        /* VISUAL GENERATION */
+        function generateVisuals(bet, won) {
+            // Bet 0 Case
+            if (bet === 0) {
+                let html = '<div class="visual-score">';
+                html += '<div class="zero-badge">0</div>';
+                
+                // If they won tricks on a 0 bet (Overtricks)
+                if (won > 0) {
+                    for(let i=0; i<won; i++) {
+                        html += '<div class="box over"></div>';
+                    }
+                }
+                html += '</div>';
+                return html;
+            }
+
+            // Normal Case
+            let html = '<div class="visual-score">';
+            // Determine max boxes needed
+            const count = Math.max(bet, (won || 0));
+            
+            for(let i=0; i<count; i++) {
+                if (won === undefined || won === null) {
+                    // Betting Phase: Just empty bet boxes
+                    html += '<div class="box empty"></div>';
+                } else {
+                    // Scoring Phase Logic
+                    if (i < bet && i < won) {
+                        html += '<div class="box filled"></div>'; // Match
+                    } else if (i < bet && i >= won) {
+                        html += '<div class="box empty"></div>'; // Undertrick (Missing)
+                    } else if (i >= bet && i < won) {
+                        html += '<div class="box over"></div>'; // Overtrick
+                    }
+                }
+            }
+            html += '</div>';
+            return html;
+        }
+
         function updateScoreCell(pIdx, rIdx, data) {
             const cell = document.getElementById(`cell-r${rIdx}-p${pIdx}`);
             if(!cell) return;
             
-            let betDisplay = '-';
+            // Generate Visuals
+            let visualHTML = '';
             if (data.bet !== undefined && data.bet !== null) {
-                betDisplay = `${t('betPrefix')} ${data.bet}`;
-                if (data.won !== undefined && data.won !== null) {
-                    betDisplay += ` | ${t('donePrefix')} ${data.won}`;
-                }
+                visualHTML = generateVisuals(data.bet, data.won);
             }
 
             const scoreDisplay = (data.points !== undefined) ? data.points : '';
@@ -1177,7 +1265,7 @@
             }
 
             cell.innerHTML = `
-                <span class="cell-bet">${betDisplay}</span>
+                ${visualHTML}
                 <span class="cell-score" style="color:${color}">${scoreDisplay}</span>
             `;
         }
