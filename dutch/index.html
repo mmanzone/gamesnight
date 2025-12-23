@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dutch Score Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../common/style.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>🇳🇱 Dutch</h1>
+        <div class="header-controls">
+            <button onclick="resetGame()"><i class="fas fa-trash-alt"></i></button>
+            <a href="../index.html"
+                style="color:var(--primary); border:1px solid var(--primary); padding:6px 12px; border-radius:6px; text-decoration:none; font-size:1.1rem; display:inline-block;"><i
+                    class="fas fa-home"></i></a>
+            <button onclick="toggleLang()" id="btn-lang">🇬🇧</button>
+        </div>
+    </header>
+
+    <!-- Setup -->
+    <div id="setup-screen" class="container">
+
+        <div class="setup-card">
+            <h2 data-i18n="game_mode">Mode de Jeu</h2>
+            <div class="mode-select">
+                <button class="mode-btn selected" onclick="setMode('score')" id="btn-mode-score"
+                    data-i18n="score_limit">Limite Score</button>
+                <button class="mode-btn" onclick="setMode('rounds')" id="btn-mode-rounds" data-i18n="round_limit">Limite
+                    Manches</button>
+            </div>
+
+            <div id="limit-input-container">
+                <input type="number" id="limit-value" value="100" placeholder="Max Score">
+            </div>
+        </div>
+
+        <div class="setup-card">
+            <h2 data-i18n="players">Joueurs</h2>
+            <div id="players-list"></div>
+            <button class="btn-secondary" onclick="addPlayerInput()" data-i18n="add_player">+ Ajouter Joueur</button>
+        </div>
+
+        <button class="btn-main" onclick="startGame()" data-i18n="start_game">Commencer</button>
+    </div>
+
+    <!-- Game Board -->
+    <div id="game-board" class="game-board">
+        <div class="round-info" id="round-info">Round 1</div>
+
+        <div class="scoreboard">
+            <table id="score-table">
+                <thead>
+                    <tr id="table-head"></tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+                <tfoot>
+                    <tr id="table-foot" class="total-row"></tr>
+                </tfoot>
+            </table>
+
+            <div style="padding: 20px;">
+                <button class="btn-main" onclick="openRoundInput()" data-i18n="enter_score">Noter les points</button>
+            </div>
+
+            <div class="common-footer">
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="round-modal" class="modal">
+        <div class="modal-content">
+            <h3 data-i18n="round_res">Résultats</h3>
+
+            <div style="margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
+                <label style="font-weight:bold; color:#e74c3c;" data-i18n="who_dutch">Qui a dit Dutch ?</label>
+            </div>
+
+            <div id="modal-inputs"></div>
+
+            <button class="btn-main" onclick="saveRound()" data-i18n="validate">Valider</button>
+            <button class="btn-secondary" onclick="closeModal()" data-i18n="cancel">Annuler</button>
+        </div>
+    </div>
+
+    <!-- Final Ranking Modal -->
+    <div id="ranking-modal" class="modal">
+        <div class="modal-content" style="text-align: center; position: relative;">
+            <button onclick="closeFinalModal()"
+                style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #333; font-size: 1.5rem; cursor: pointer; z-index: 10;">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="rank-capture-area" style="background:var(--bg-color); padding:10px; border-radius:8px;">
+                <h2 data-i18n="final_res">🏆 Résultats Finaux</h2>
+                <div id="ranking-list" style="text-align:left; margin-bottom:20px;"></div>
+            </div>
+
+            <button class="btn-main" onclick="shareResults()" data-i18n="share">📸 Partager</button>
+            <button class="btn-secondary" onclick="resetGame()" data-i18n="new_game">Nouvelle Partie</button>
+        </div>
+    </div>
+
+    <audio id="sfx-dutch" src="../dutch.mp3"></audio>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <script src="../common/script.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
