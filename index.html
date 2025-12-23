@@ -1,21 +1,27 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Score Tracker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Pirata+One&family=Bangers&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Pirata+One&family=Bangers&family=Press+Start+2P&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
             --bg-color: #121212;
             --text-color: #f0f0f0;
             --card-bg: #1e1e1e;
-            --accent-color: #d4af37; /* Gold from Skull King */
+            --accent-color: #d4af37;
+            /* Gold from Skull King */
         }
-        
-        * { box-sizing: border-box; }
+
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Roboto', sans-serif;
@@ -29,10 +35,24 @@
             min-height: 100vh;
         }
 
+        .lang-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 1.2rem;
+        }
+
         h1 {
             color: var(--accent-color);
             margin-bottom: 40px;
             text-align: center;
+            margin-top: 40px;
         }
 
         .game-grid {
@@ -78,22 +98,38 @@
             font-family: 'Pirata One', cursive;
             --accent-color: #d4af37;
         }
-        
+
         .card-papayoo {
-            font-family: 'Bangers', cursive; /* Fun font */
-            --accent-color: #9b59b6; /* Purple */
+            font-family: 'Bangers', cursive;
+            /* Fun font */
+            --accent-color: #9b59b6;
+            /* Purple */
             border-color: #9b59b6;
         }
-        .card-papayoo:hover { border-color: #f1c40f; } /* Yellow on hover */
+
+        .card-papayoo:hover {
+            border-color: #f1c40f;
+        }
+
+        /* Yellow on hover */
 
         .card-dutch {
-            font-family: 'Press Start 2P', cursive; /* Retro/High energy */
-            font-size: 0.8rem; /* Start 2P is large */
+            font-family: 'Press Start 2P', cursive;
+            /* Retro/High energy */
+            font-size: 0.8rem;
+            /* Start 2P is large */
             --accent-color: #e74c3c;
             border-color: #e74c3c;
         }
-        .card-dutch .game-title { font-size: 1.2rem; margin-top: 10px; }
-        .card-dutch:hover { border-color: #2ecc71; }
+
+        .card-dutch .game-title {
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+
+        .card-dutch:hover {
+            border-color: #2ecc71;
+        }
 
         .footer {
             margin-top: auto;
@@ -103,33 +139,71 @@
         }
     </style>
 </head>
+
 <body>
 
-    <h1>Score Tracker</h1>
+    <button class="lang-switch" onclick="toggleLang()" id="btn-lang">🇬🇧</button>
+
+    <h1 id="main-title">Score Tracker</h1>
 
     <div class="game-grid">
         <a href="skullking/index.html" class="game-card card-skullking">
             <div class="game-icon">💀</div>
             <div class="game-title">Skull King</div>
-            <div>Hisser les voiles !</div>
+            <div data-i18n="sk_desc">Hisser les voiles !</div>
         </a>
 
         <a href="papayoo/index.html" class="game-card card-papayoo">
             <div class="game-icon">🎲</div>
             <div class="game-title">Papayoo</div>
-            <div style="font-family: 'Roboto', sans-serif;">Gare au 7 !</div>
+            <div style="font-family: 'Roboto', sans-serif;" data-i18n="pp_desc">Gare au 7 !</div>
         </a>
 
         <a href="dutch/index.html" class="game-card card-dutch">
             <div class="game-icon">⚡</div>
             <div class="game-title">Dutch</div>
-            <div style="font-family: 'Roboto', sans-serif;">Le plus bas gagne !</div>
+            <div style="font-family: 'Roboto', sans-serif;" data-i18n="dt_desc">Le plus bas gagne !</div>
         </a>
     </div>
 
-    <div class="footer">
+    <div class="footer" data-i18n="footer">
         Fait maison pour les vacances
     </div>
 
+    <script>
+        const I18N = {
+            fr: {
+                title: "Tableau de Score",
+                sk_desc: "Hisser les voiles !",
+                pp_desc: "Gare au 7 !",
+                dt_desc: "Le plus bas gagne !",
+                footer: "Fait maison pour les vacances"
+            },
+            en: {
+                title: "Score Tracker",
+                sk_desc: "Set Sail!",
+                pp_desc: "Beware the 7!",
+                dt_desc: "Lowest score wins!",
+                footer: "Home made for the holidays"
+            }
+        };
+
+        let curLang = 'fr';
+
+        function toggleLang() {
+            curLang = curLang === 'fr' ? 'en' : 'fr';
+            document.getElementById('btn-lang').innerText = curLang === 'fr' ? '🇬🇧' : '🇫🇷';
+            updateText();
+        }
+
+        function updateText() {
+            document.getElementById('main-title').innerText = I18N[curLang].title;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (I18N[curLang][key]) el.innerText = I18N[curLang][key];
+            });
+        }
+    </script>
 </body>
+
 </html>

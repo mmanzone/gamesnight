@@ -167,33 +167,45 @@ input[type="text"] {
     border-radius: 12px;
     width: 50px;
     height: 50px;
-    border: none;
     cursor: pointer;
     opacity: 0.5;
     transition: all 0.2s;
+    /* Borders updated per requirements */
+    border: 4px solid #ccc;
+    /* Default fallback */
 }
+
+.suit-btn.suit-hearts {
+    border-color: #E91E63;
+    color: #E91E63;
+}
+
+/* Pink */
+.suit-spades {
+    border-color: #2196F3;
+    color: black;
+}
+
+/* Blue */
+.suit-diamonds {
+    border-color: #FF9800;
+    color: #e74c3c;
+}
+
+/* Orange */
+.suit-clubs {
+    border-color: #FFEB3B;
+    color: black;
+}
+
+/* Yellow */
 
 .suit-btn.selected {
     opacity: 1;
     transform: scale(1.2);
     box-shadow: 0 0 15px currentColor;
-    border: 2px solid white;
-}
-
-.suit-spades {
-    color: black;
-}
-
-.suit-hearts {
-    color: #e74c3c;
-}
-
-.suit-clubs {
-    color: black;
-}
-
-.suit-diamonds {
-    color: #e74c3c;
+    background: #fff;
+    /* Ensure bg is white */
 }
 
 .papayou-btn-container {
@@ -204,8 +216,9 @@ input[type="text"] {
 .btn-papayou {
     background: #e91e63;
     color: white;
-    font-size: 2rem;
-    padding: 10px 40px;
+    font-size: 1.5rem;
+    /* Slightly smaller to fit text */
+    padding: 10px 20px;
     border-radius: 50px;
     border: none;
     font-family: 'Bangers', cursive;
@@ -273,7 +286,7 @@ td {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.95);
     z-index: 100;
     display: none;
     justify-content: center;
@@ -310,6 +323,11 @@ td {
 .score-input-row input {
     width: 80px;
     text-align: center;
+    /* Larger and bolder input */
+    font-size: 1.4rem;
+    font-weight: bold;
+    padding: 8px;
+    color: #2c003e;
 }
 
 .score-hud {
@@ -324,9 +342,30 @@ td {
     color: #e74c3c;
 }
 
+/* Styles for Auto-Complete button visibility */
+.btn-auto {
+    background: var(--accent-green);
+    color: #000;
+    border: none;
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    padding: 12px;
+    border-radius: 6px;
+    width: 100%;
+    cursor: pointer;
+}
+
 /* Rules Modal */
 .rules-content p {
     text-align: left;
     margin-bottom: 10px;
     line-height: 1.4;
+}
+
+/* Inline Warning Modal (Small Alert replacement) */
+#inline-warning-modal .modal-content {
+    background: #e74c3c;
+    border: 2px solid #fff;
+    text-align: center;
 }
