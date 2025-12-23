@@ -26,7 +26,10 @@ const I18N = {
         game_over: "Partie Terminée",
         round: "Manche",
         place_score: "Max Score",
-        place_round: "Max Manches"
+        place_round: "Max Manches",
+        final_res: "🏆 Résultats Finaux",
+        share: "📸 Partager",
+        new_game: "Nouvelle Partie"
     },
     en: {
         game_mode: "Game Mode",
@@ -46,7 +49,10 @@ const I18N = {
         game_over: "Game Over",
         round: "Round",
         place_score: "Max Score",
-        place_round: "Max Rounds"
+        place_round: "Max Rounds",
+        final_res: "🏆 Final Results",
+        share: "📸 Share",
+        new_game: "New Game"
     }
 };
 
@@ -173,23 +179,9 @@ function toggleDutch(idx) {
 }
 
 function saveRound() {
-    let scores = [];
-    let inputs = document.querySelectorAll('.score-input');
-
-    // Logic:
-    // If Dutch Active:
-    //   - If Valid (Score=0? Or user enters result?). 
-    //   - Usually Dutch = Call before round. If score is lowest (0 usually?), score = -10. Else +10.
-    //   - Simplified here: If button active, we assume user is indicating "This player called Dutch". 
-    //   - The user MUST enter the raw score from cards. We calculate the result.
-    //   - WAIT. A "Dutch" call means you think you'll have lowest. 
-    //   - If you succeed (lowest score), you get -10 (or 0?). Rules vary.
-    //   - Let's stick to simple: Access card score.
-    //   - If Toggle Active: Logic = IF score_input <= all_others THEN score = -10 ELSE score = score_input + 10.
-
-    // First gather raw inputs
     let rawScores = [];
     let dutchCallers = []; // indices
+    let inputs = document.querySelectorAll('.score-input');
 
     inputs.forEach((inp, i) => {
         let val = Number(inp.value) || 0;
@@ -201,19 +193,15 @@ function saveRound() {
 
     let finalScores = [...rawScores];
 
-    // Apply Dutch logic
     dutchCallers.forEach(idx => {
         const myScore = rawScores[idx];
-        // Check if I am strictly lowest (or tied lowest?) usually strictly or tied is fine.
         const others = rawScores.filter((_, i) => i !== idx);
         const minOthers = Math.min(...others);
 
         if (myScore < minOthers) {
-            // Success
             finalScores[idx] = -10;
         } else {
-            // Fail
-            finalScores[idx] = 10 + myScore; // Penalty + Face value usually
+            finalScores[idx] = 10 + myScore;
         }
     });
 
@@ -248,8 +236,6 @@ function renderTable() {
             totals[i] += s;
             const td = document.createElement('td');
             td.innerText = s;
-            // Highlight Dutch success/fail if we tracked it? 
-            // For now just show numbers.
             tr.appendChild(td);
         });
         tbody.appendChild(tr);
@@ -278,12 +264,77 @@ function checkGameEnd() {
     }
 
     if (ended) {
-        // Find winner (lowest score)
-        let minScore = Math.min(...totals);
-        let winnerIdx = totals.indexOf(minScore);
-        alert(t('winner').replace('#', gameState.players[winnerIdx]));
-        // Could replace with a modal later, but simple alert for now as per minimal change request/time
+        showFinalRanking(totals);
     }
+}
+
+function showFinalRanking(totals) {
+    const rankings = gameState.players.map((p, i) => ({ name: p, score: totals[i] }));
+
+    // Sort ascending (lowest wins in Dutch)
+    rankings.sort((a, b) => a.score - b.score);
+
+    const list = document.getElementById('ranking-list');
+    list.innerHTML = '';
+
+    rankings.forEach((r, i) => {
+        const div = document.createElement('div');
+        div.style.fontSize = "1.2rem";
+        div.style.borderBottom = "1px solid #ddd";
+        div.style.padding = "10px";
+        div.style.display = "flex";
+        div.style.justifyContent = "space-between";
+
+        if (i === 0) {
+            div.style.color = "var(--accent)";
+            div.style.fontWeight = "bold";
+            div.innerHTML = `<span>🏆 ${r.name}</span> <span>${r.score}</span>`;
+        } else {
+            div.innerHTML = `<span>${i + 1}. ${r.name}</span> <span>${r.score}</span>`;
+        }
+
+        list.appendChild(div);
+    });
+
+    document.getElementById('ranking-modal').classList.add('visible');
+
+    // Play sound on loop
+    const audio = document.getElementById('sfx-dutch');
+    if (audio) {
+        audio.loop = true;
+        audio.play().catch(() => { });
+    }
+}
+
+function closeFinalModal() {
+    document.getElementById('ranking-modal').classList.remove('visible');
+    const audio = document.getElementById('sfx-dutch');
+    if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.loop = false;
+    }
+}
+
+function shareResults() {
+    const area = document.getElementById('rank-capture-area');
+    html2canvas(area).then(canvas => {
+        canvas.toBlob(blob => {
+            const files = [new File([blob], 'dutch-score.png', { type: 'image/png' })];
+            if (navigator.share && navigator.canShare && navigator.canShare({ files })) {
+                navigator.share({
+                    files: files,
+                    title: 'Dutch Results',
+                    text: 'Great game!'
+                });
+            } else {
+                const link = document.createElement('a');
+                link.download = 'dutch-score.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            }
+        });
+    });
 }
 
 function closeModal() {
@@ -302,7 +353,6 @@ function saveState() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Populate datalist from shared history
     const history = CommonGame.getStoredPlayers();
     const dl = document.createElement('datalist');
     dl.id = 'player-history';

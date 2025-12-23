@@ -92,6 +92,26 @@
         </div>
     </div>
 
+    <!-- Final Ranking Modal -->
+    <div id="ranking-modal" class="modal">
+        <div class="modal-content" style="text-align: center; position: relative;">
+            <button onclick="closeFinalModal()"
+                style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #333; font-size: 1.5rem; cursor: pointer; z-index: 10;">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="rank-capture-area" style="background:var(--bg-color); padding:10px; border-radius:8px;">
+                <h2 data-i18n="final_res">🏆 Résultats Finaux</h2>
+                <div id="ranking-list" style="text-align:left; margin-bottom:20px;"></div>
+            </div>
+
+            <button class="btn-main" onclick="shareResults()" data-i18n="share">📸 Partager</button>
+            <button class="btn-secondary" onclick="resetGame()" data-i18n="new_game">Nouvelle Partie</button>
+        </div>
+    </div>
+
+    <audio id="sfx-dutch" src="../dutch.mp3"></audio>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
     <script src="../common/script.js"></script>
     <script src="script.js"></script>
 </body>
