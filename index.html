@@ -81,23 +81,27 @@
         }
 
         .game-card {
-            background: var(--card-bg);
+            background: transparent;
             border: 4px solid #fff;
             border-radius: 12px;
-            padding: 20px;
-            text-align: center;
+            padding: 0;
             text-decoration: none;
-            color: var(--card-text);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.1s, box-shadow 0.2s;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            gap: 15px;
+            align-items: center;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             position: relative;
             /* Card Look */
             aspect-ratio: 3/4;
+            overflow: hidden;
+        }
+
+        .game-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .game-card:hover {
@@ -105,45 +109,26 @@
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
         }
 
-        .game-icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
+        .game-card.clicking {
+            transform: scale(0.95) !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5) !important;
         }
 
-        .game-title {
-            font-size: 1.8rem;
-            font-weight: bold;
-        }
+        /* Titles are now part of the image or hidden, user requested images as links */
+        /* If we want tiles we can overlay them, but user said "Use the respective images as links" */
 
-        /* Specific Game Styles */
+        /* ... existing specific styles can remain or be removed if unused ... */
+        /* Keeping them safe but they might not apply to img structure */
         .card-skullking {
-            font-family: 'Pirata One', cursive;
             border-color: #d4af37;
         }
 
-        .card-skullking .game-title {
-            color: #8a7326;
-        }
-
         .card-papayoo {
-            font-family: 'Bangers', cursive;
             border-color: #9b59b6;
         }
 
-        .card-papayoo .game-title {
-            color: #8e44ad;
-        }
-
         .card-dutch {
-            font-family: 'Press Start 2P', cursive;
-            font-size: 0.8rem;
             border-color: #e74c3c;
-        }
-
-        .card-dutch .game-title {
-            font-size: 1.2rem;
-            margin-top: 10px;
-            color: #c0392b;
         }
 
         .footer {
@@ -234,21 +219,15 @@
 
     <div class="game-grid">
         <a href="skullking/index.html" class="game-card card-skullking">
-            <div class="game-icon">💀</div>
-            <div class="game-title">Skull King</div>
-            <div data-i18n="sk_desc">Hisser les voiles !</div>
+            <img src="skullking.png" alt="Skull King">
         </a>
 
         <a href="papayoo/index.html" class="game-card card-papayoo">
-            <div class="game-icon">🎲</div>
-            <div class="game-title">Papayoo</div>
-            <div style="font-family: 'Roboto', sans-serif;" data-i18n="pp_desc">Gare au 7 !</div>
+            <img src="papayoo.png" alt="Papayoo">
         </a>
 
         <a href="dutch/index.html" class="game-card card-dutch">
-            <div class="game-icon">🇳🇱</div>
-            <div class="game-title">Dutch</div>
-            <div style="font-family: 'Roboto', sans-serif;" data-i18n="dt_desc">Le plus bas gagne !</div>
+            <img src="dutch.png" alt="Dutch">
         </a>
     </div>
 
@@ -287,9 +266,6 @@
         const I18N = {
             fr: {
                 title: "Soirée Jeux",
-                sk_desc: "Hisser les voiles !",
-                pp_desc: "Gare au 7 !",
-                dt_desc: "Le plus bas gagne !",
                 footer: "Fait maison pour les vacances",
                 settings: "Paramètres",
                 def_lang: "Langue par défaut",
@@ -299,9 +275,6 @@
             },
             en: {
                 title: "Game Night",
-                sk_desc: "Set Sail!",
-                pp_desc: "Beware the 7!",
-                dt_desc: "Lowest score wins!",
                 footer: "Home made for the holidays",
                 settings: "Settings",
                 def_lang: "Default Language",
@@ -333,13 +306,27 @@
             if (link) {
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
+
+                    // Animation
+                    link.classList.add('clicking');
+
                     const audio = document.getElementById(audioId);
                     if (audio) {
-                        // Play sound, wait 800ms, then go
-                        audio.play().catch(err => console.log('Audio play failed', err));
+                        const playPromise = audio.play();
+
+                        // Handle potential play errors (e.g. user interacting requirements, blocked autoplay)
+                        if (playPromise !== undefined) {
+                            playPromise.catch(error => {
+                                console.log('Audio playback prevented:', error);
+                                // If audio fails, just navigate immediately
+                                window.location.href = href;
+                            });
+                        }
+
+                        // Wait for sound/anim
                         setTimeout(() => {
                             window.location.href = href;
-                        }, 800);
+                        }, 500); // 500ms delay for effect
                     } else {
                         window.location.href = href;
                     }
