@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generic Score Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../common/style.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>🎲 Score Tracker</h1>
+        <div class="header-controls">
+            <button onclick="showRules()"><i class="fas fa-question-circle"></i></button>
+            <button onclick="resetGame()"><i class="fas fa-trash-alt"></i></button>
+            <a href="../index.html"
+                style="color:var(--primary); border:1px solid var(--primary); padding:6px 12px; border-radius:6px; text-decoration:none; font-size:1.1rem; display:inline-block;"><i
+                    class="fas fa-home"></i></a>
+            <button onclick="toggleLang()" id="btn-lang">🇬🇧</button>
+        </div>
+    </header>
+
+    <!-- Setup -->
+    <div id="setup-screen" class="container">
+
+        <div class="setup-card">
+            <h2 data-i18n="game_mode">Mode de Jeu</h2>
+
+            <label style="display:block; font-weight:bold; margin-bottom:10px; color:#555;"
+                data-i18n="end_condition">Condition de Fin</label>
+            <div class="mode-select">
+                <button class="mode-btn selected" onclick="setMode('score')" id="btn-mode-score"
+                    data-i18n="score_limit">Limite Score</button>
+                <button class="mode-btn" onclick="setMode('rounds')" id="btn-mode-rounds" data-i18n="round_limit">Limite
+                    Manches</button>
+            </div>
+
+            <div id="limit-input-container">
+                <input type="number" id="limit-value" value="100" placeholder="Max Score">
+            </div>
+
+            <hr style="margin: 20px 0; border:none; border-top:1px solid #ddd;">
+
+            <label style="display:block; font-weight:bold; margin-bottom:10px; color:#555;"
+                data-i18n="win_condition">Qui Gagne ?</label>
+            <div class="mode-select">
+                <button class="mode-btn selected" onclick="setWinType('high')" id="btn-win-high"
+                    data-i18n="win_high">Plus Haut Score</button>
+                <button class="mode-btn" onclick="setWinType('low')" id="btn-win-low" data-i18n="win_low">Plus Bas
+                    Score</button>
+            </div>
+        </div>
+
+        <div class="setup-card">
+            <h2 data-i18n="players">Joueurs</h2>
+            <div id="players-list"></div>
+            <button class="btn-secondary" onclick="addPlayerInput()" data-i18n="add_player">+ Ajouter Joueur</button>
+        </div>
+
+        <button class="btn-main" onclick="startGame()" data-i18n="start_game">Commencer</button>
+    </div>
+
+    <!-- Game Board -->
+    <div id="game-board" class="game-board">
+        <div class="round-info" id="round-info">Round 1</div>
+
+        <div class="scoreboard">
+            <table id="score-table">
+                <thead>
+                    <tr id="table-head"></tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+                <tfoot>
+                    <tr id="table-foot" class="total-row"></tr>
+                </tfoot>
+            </table>
+
+            <div style="padding: 20px;">
+                <button class="btn-main" onclick="openRoundInput()" data-i18n="enter_score">Noter les points</button>
+            </div>
+
+            <div class="common-footer"></div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="round-modal" class="modal">
+        <div class="modal-content">
+            <h3 data-i18n="round_res">Résultats</h3>
+            <div id="modal-inputs"></div>
+
+            <button class="btn-main" onclick="saveRound()" data-i18n="validate">Valider</button>
+            <button class="btn-secondary" onclick="closeModal()" data-i18n="cancel">Annuler</button>
+        </div>
+    </div>
+
+    <!-- Final Ranking Modal -->
+    <div id="ranking-modal" class="modal">
+        <div class="modal-content" style="text-align: center; position: relative;">
+            <button onclick="closeFinalModal()"
+                style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: #333; font-size: 1.5rem; cursor: pointer; z-index: 10;">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="rank-capture-area" style="background:var(--bg-color); padding:10px; border-radius:8px;">
+                <h2 data-i18n="final_res">🏆 Résultats Finaux</h2>
+                <div id="ranking-list" style="text-align:left; margin-bottom:20px;"></div>
+            </div>
+
+            <button class="btn-main" onclick="shareResults()" data-i18n="share">📸 Partager</button>
+            <button class="btn-secondary" onclick="resetGame()" data-i18n="new_game">Nouvelle Partie</button>
+        </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div id="rules-modal" class="modal">
+        <div class="modal-content" style="text-align:left;">
+            <h2>Règles</h2>
+            <p data-i18n="rules_text_1">Ce modèle sert à suivre les points de n'importe quel jeu.</p>
+            <p data-i18n="rules_text_2">Le maître du jeu choisit le mécanisme de comptage et entre les scores tour après
+                tour jusqu'à ce que la limite soit atteinte.</p>
+            <p data-i18n="rules_text_3">Le classement final s'affichera alors, selon la condition de victoire choisie
+                (Scores les plus hauts ou les plus bas).</p>
+            <button class="btn-secondary" onclick="document.getElementById('rules-modal').classList.remove('visible')"
+                data-i18n="close">Fermer</button>
+        </div>
+    </div>
+
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="../common/script.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

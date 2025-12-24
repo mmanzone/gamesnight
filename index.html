@@ -131,6 +131,10 @@
             border-color: #e74c3c;
         }
 
+        .card-generic {
+            border-color: #2980b9;
+        }
+
         .footer {
             margin-top: auto;
             color: rgba(255, 255, 255, 0.7);
@@ -229,6 +233,10 @@
         <a href="dutch/index.html" class="game-card card-dutch">
             <img src="dutch.png" alt="Dutch">
         </a>
+
+        <a href="generic/index.html" class="game-card card-generic">
+            <img src="generic.png" alt="Generic Game">
+        </a>
     </div>
 
     <div class="footer" data-i18n="footer">
@@ -297,6 +305,7 @@
             setupAudioLink('skullking/index.html', 'sfx-skull');
             setupAudioLink('papayoo/index.html', 'sfx-papayoo');
             setupAudioLink('dutch/index.html', 'sfx-dutch');
+            setupAudioLink('generic/index.html', null); // No sound
         }
 
         function setupAudioLink(href, audioId) {
