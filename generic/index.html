@@ -112,7 +112,14 @@
             </div>
 
             <button class="btn-main" onclick="shareResults()" data-i18n="share">📸 Partager</button>
-            <button class="btn-secondary" onclick="resetGame()" data-i18n="new_game">Nouvelle Partie</button>
+
+            <button class="btn-secondary"
+                style="border:2px solid var(--primary); background:#eBF5FB; color:var(--primary); padding:12px; margin-top:15px; text-decoration:none; font-weight:bold; width:100%; border-radius:8px;"
+                onclick="restartSamePlayers()" data-i18n="valid_same_players">Rejouer (Mêmes Joueurs)</button>
+
+            <button class="btn-secondary"
+                style="border:2px solid #e74c3c; background:#FDEDEC; color:#e74c3c; margin-top:10px; padding:12px; width:100%; border-radius:8px; font-weight:bold;"
+                onclick="resetGame()" data-i18n="new_game_players">Nouvelle Partie (Nouveaux Joueurs)</button>
         </div>
     </div>
 

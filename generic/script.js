@@ -37,7 +37,9 @@ const I18N = {
         rules_text_1: "Ce modèle sert à suivre les points de n'importe quel jeu.",
         rules_text_2: "Le maître du jeu choisit le mécanisme de comptage et entre les scores tour après tour jusqu'à ce que la limite soit atteinte.",
         rules_text_3: "Le classement final s'affichera alors, selon la condition de victoire choisie.",
-        close: "Fermer"
+        close: "Fermer",
+        valid_same_players: "Rejouer (Mêmes Joueurs)",
+        new_game_players: "Nouvelle Partie (Nouveaux Joueurs)"
     },
     en: {
         game_mode: "Game Mode",
@@ -67,7 +69,9 @@ const I18N = {
         rules_text_1: "This template tracks points for any game.",
         rules_text_2: "The game master selects the counting mechanism and enters scores round by round until the limit is reached.",
         rules_text_3: "The final ranking will display based on the selected win condition (Highest or Lowest score).",
-        close: "Close"
+        close: "Close",
+        valid_same_players: "Play Again (Same Players)",
+        new_game_players: "New Game (New Players)"
     }
 };
 
@@ -368,6 +372,17 @@ function resetGame() {
     if (confirm("Reset Game?")) {
         localStorage.removeItem('generic_state');
         location.reload();
+    }
+}
+
+function restartSamePlayers() {
+    if (confirm(t('valid_same_players') + " ?")) {
+        gameState.rounds = [];
+        gameState.dealerIdx = (gameState.dealerIdx + 1) % gameState.players.length;
+
+        saveState();
+        closeFinalModal();
+        setupBoard();
     }
 }
 

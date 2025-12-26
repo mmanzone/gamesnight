@@ -29,7 +29,9 @@ const I18N = {
         place_round: "Max Manches",
         final_res: "🏆 Résultats Finaux",
         share: "📸 Partager",
-        new_game: "Nouvelle Partie"
+        new_game: "Nouvelle Partie", // Keep for legacy or overwrite?
+        valid_same_players: "Rejouer (Mêmes Joueurs)",
+        new_game_players: "Nouvelle Partie (Nouveaux Joueurs)"
     },
     en: {
         game_mode: "Game Mode",
@@ -52,7 +54,9 @@ const I18N = {
         place_round: "Max Rounds",
         final_res: "🏆 Final Results",
         share: "📸 Share",
-        new_game: "New Game"
+        new_game: "New Game",
+        valid_same_players: "Play Again (Same Players)",
+        new_game_players: "New Game (New Players)"
     }
 };
 
@@ -439,6 +443,17 @@ function resetGame() {
     if (confirm("Reset Game?")) {
         localStorage.removeItem('dutch_state');
         location.reload();
+    }
+}
+
+function restartSamePlayers() {
+    if (confirm(t('valid_same_players') + " ?")) {
+        gameState.rounds = [];
+        gameState.dealerIdx = (gameState.dealerIdx + 1) % gameState.players.length;
+
+        saveState();
+        closeFinalModal();
+        setupBoard();
     }
 }
 

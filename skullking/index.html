@@ -644,11 +644,18 @@
 
             <div style="display:flex; gap:10px; flex-direction:column; margin-top:20px;">
                 <button class="btn-confirm" onclick="shareRanking()"><i class="fas fa-share-alt"></i> Partager</button>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-revert" style="flex:1; width:auto; border:1px solid #555;"
-                        onclick="closeRanking()">Voir Score</button>
-                    <button class="btn-main" style="flex:1; margin-top:0;" onclick="resetGame()">Nouveau Jeu</button>
-                </div>
+
+                <button class="btn-main"
+                    style="border:2px solid var(--gold); background:#2c2c30; color:var(--gold); padding:12px; margin-top:15px; width:100%; border-radius:8px;"
+                    onclick="restartSamePlayers()">
+                    <i class="fas fa-undo"></i> Same Players
+                </button>
+
+                <button class="btn-main"
+                    style="border:2px solid #e74c3c; background:#301b1b; color:#e74c3c; margin-top:10px; padding:12px; width:100%; border-radius:8px;"
+                    onclick="resetGame()">
+                    New Game (New Players)
+                </button>
             </div>
         </div>
     </div>
@@ -807,7 +814,9 @@
                     ["Capturing Mermaid", "+20 Bonus"],
                     ["Mermaid captures Skull King", "+40 Bonus"],
                     ["Skull King captures Pirate", "+30 Bonus each"]
-                ]
+                ],
+                valid_same_players: "Play Again (Same Players)",
+                new_game_players: "New Game (New Players)"
             },
             fr: {
                 add: "Ajouter un Pirate",
@@ -847,8 +856,10 @@
                     ["Capturer le 14", "+10/20 Bonus"],
                     ["Capturer Sirène", "+20 Bonus"],
                     ["Sirène capture Skull King", "+40 Bonus"],
-                    ["Skull King capture Pirate", "+30 Bonus chaque"]
-                ]
+                    ["Skull King captures Pirate", "+30 Bonus each"]
+                ],
+                valid_same_players: "Rejouer (Mêmes Joueurs)",
+                new_game_players: "Nouvelle Partie (Nouveaux Joueurs)"
             }
         };
 
@@ -869,7 +880,17 @@
             document.getElementById('setup-title').innerText = t('manifest');
             document.getElementById('modal-head').innerText = t('modalHead');
             document.getElementById('txt-confirm').innerText = t('confirm');
+            document.getElementById('txt-confirm').innerText = t('confirm');
             document.getElementById('rank-title').innerText = t('rankTitle');
+
+            // Buttons in ranking modal (hardcoded in HTML currently, let's update if I18N support added, 
+            // but for now I put static text with icons. 
+            // Actually, better to update them here to support language toggle!)
+            const btns = document.querySelectorAll('#ranking-modal .btn-main');
+            if (btns.length >= 2) {
+                btns[0].innerHTML = `<i class="fas fa-undo"></i> ${t('valid_same_players')}`;
+                btns[1].innerText = t('new_game_players');
+            }
 
             if (gameState.started) {
                 renderWizard();
@@ -981,6 +1002,31 @@
             if (confirm(t('resetWarn'))) {
                 localStorage.removeItem(STORAGE_KEY);
                 location.reload();
+            }
+        }
+
+        function restartSamePlayers() {
+            if (confirm(t('valid_same_players') + " ?")) {
+                // Keep players but reset scores
+                gameState.round = 1;
+                gameState.phase = 'betting';
+                gameState.activePlayerIdx = 0;
+                gameState.dealerIdx = (gameState.initialDealerIdx + 1) % gameState.players.length; // Shift dealer
+                gameState.initialDealerIdx = gameState.dealerIdx; // Set new initial
+
+                gameState.players.forEach(p => {
+                    p.scores = [];
+                    p.totalScore = 0;
+                });
+
+                closeRanking();
+                document.getElementById('finished-game-banner').classList.add('hidden');
+                document.getElementById('input-zone').style.display = 'block'; // Show inputs again
+
+                saveState();
+                renderTableStructure();
+                renderWizard();
+                playSound('start');
             }
         }
 
