@@ -10,23 +10,29 @@ let gameState = {
 let curLang = 'fr';
 const I18N = {
     fr: {
-        who_plays: "Qui joue ?",
+        game_mode: "Mode de Jeu",
+        round_limit: "Nombre de Manches",
+        players: "Joueurs",
         add_player: "+ Ajouter Joueur",
-        start_game: "Commencer la partie !",
-        total: "Tot.",
+        start_game: "Commencer",
         enter_score: "Noter les points",
         home: "Accueil",
-        round_res: "Résultats Manche",
-        auto_complete: "Compléter Auto",
+        round_res: "Résultats",
+        dice_result: "Dés : ",
+        discard: "Écart",
         validate: "Valider",
         cancel: "Annuler",
+        total: "Total",
+        winner: "🏆 Vainqueur : # !",
+        game_over: "Partie Terminée",
+        round: "Manche",
+        place_round: "Ex: 4",
         final_res: "🏆 Résultats Finaux",
         share: "📸 Partager",
-        new_game: "Nouvelle Partie",
-        close: "Fermer",
-        show_final: "Voir Scores Finaux",
-        dice_label: "Papayoo (M #)",
-        btn_papayoo: "7 # Papayoo !!",
+        new_game_players: "Nouvelle Partie (Nouveaux Joueurs)",
+        valid_same_players: "Rejouer (Mêmes Joueurs)",
+        who_papayoo: "Qui a pris le Papayoo ?",
+        papayoo_alert: "Attention Papayoo !",
         warn_dice: "Pas de couleur Papayoo sélectionnée !",
         warn_players: "Il faut au moins 3 joueurs !",
         warn_auto: "Il doit y avoir exactement un champ vide pour utiliser le calcul automatique !",
@@ -232,11 +238,45 @@ function updateDiceUI() {
     updateDiceLabel();
 }
 
+let tempCarlosIdx = -1;
+
 function playPapayouSound() {
     const audio = document.getElementById('sfx-papayou');
     audio.loop = false;
     audio.onerror = () => { console.warn("Audio file missing"); };
     audio.play().catch(e => console.log(e));
+
+    // Open Modal
+    openCarlosModal();
+}
+
+function openCarlosModal() {
+    const modal = document.getElementById('carlos-modal');
+    const list = document.getElementById('carlos-list');
+    list.innerHTML = '';
+
+    gameState.players.forEach((p, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-secondary';
+        btn.innerText = p;
+        btn.style.border = "1px solid #ccc";
+        btn.style.width = "100%";
+        btn.onclick = () => selectCarlos(i);
+        list.appendChild(btn);
+    });
+
+    modal.classList.add('visible');
+}
+
+function selectCarlos(idx) {
+    tempCarlosIdx = idx;
+    closeCarlosModal();
+    // Feedback
+    // alert(`${gameState.players[idx]} ${t('who_papayoo')} 🦜`);
+}
+
+function closeCarlosModal() {
+    document.getElementById('carlos-modal').classList.remove('visible');
 }
 
 let editingRoundIdx = -1;
@@ -332,19 +372,21 @@ function saveRoundScores() {
     }
 
     if (editingRoundIdx > -1) {
-        // preserve existing color
+        // preserve existing data
         gameState.rounds[editingRoundIdx].scores = scores;
-        // if user wants to edit color, it's not supported here.
+        if (tempCarlosIdx > -1) gameState.rounds[editingRoundIdx].carlos = tempCarlosIdx;
     } else {
         gameState.rounds.push({
             scores: scores,
-            color: gameState.activePapayooColor
+            color: gameState.activePapayooColor,
+            carlos: tempCarlosIdx
         });
         gameState.dealerIdx = (gameState.dealerIdx + 1) % gameState.players.length;
         // Reset Dice
         gameState.activePapayooColor = null;
     }
 
+    tempCarlosIdx = -1; // Reset
     saveState();
     closeModal();
     renderScoreTable();
@@ -354,10 +396,15 @@ function saveRoundScores() {
 
 function checkEndGameBtn() {
     const btn = document.getElementById('btn-final-score');
-    if (gameState.rounds.length >= gameState.players.length) {
+    if (gameState.rounds.length >= gameState.players.length) { // Or some logical limit?
+        // Actually Papayoo usually matches rounds to players or fixed. Original code: rounds >= players
         btn.style.display = 'block';
     } else {
-        btn.style.display = 'none';
+        // Allow showing anytime really? But original hidden it.
+        // Let's keep existing logic or maybe show if > 0?
+        // User didn't ask to change this logic, just buttons inside modal.
+        btn.style.display = 'block'; // Let's make it always visible if at least 1 round?
+        if (gameState.rounds.length === 0) btn.style.display = 'none';
     }
 }
 
@@ -379,12 +426,19 @@ function renderScoreTable() {
 
     gameState.rounds.forEach((r, rIdx) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td><span style="color:#aaa">${rIdx + 1}</span> <span style="font-size:0.8rem">${r.color}</span> <i class="fas fa-edit" onclick="editRound(${rIdx})" style="cursor:pointer; color:#888; margin-left:5px; font-size:0.8rem;"></i></td>`;
+        const carlosIdx = (r.carlos !== undefined) ? r.carlos : -1;
+
+        tr.innerHTML = `<td><span style="color:#aaa">${rIdx + 1}</span> <span style="font-size:0.8rem">${r.color || ''}</span> <i class="fas fa-edit" onclick="editRound(${rIdx})" style="cursor:pointer; color:#888; margin-left:5px; font-size:0.8rem;"></i></td>`;
 
         r.scores.forEach((s, pIdx) => {
             totals[pIdx] += s;
             const td = document.createElement('td');
-            td.innerText = s;
+
+            let content = `<span>${s}</span>`;
+            if (pIdx === carlosIdx) {
+                content += `<br><img src="carlos.png" style="width:24px; height:auto; vertical-align:middle; margin-top:2px;" title="Got the Papayoo!">`;
+            }
+            td.innerHTML = content;
             tr.appendChild(td);
         });
         tbody.appendChild(tr);
@@ -475,6 +529,20 @@ function shareResults() {
 
 function closeModal() {
     document.getElementById('round-modal').classList.remove('visible');
+}
+
+function restartSamePlayers() {
+    if (confirm(t('valid_same_players') + "?")) {
+        gameState.rounds = [];
+        gameState.dealerIdx = 0;
+        // Keep players
+        saveState();
+        closeFinalModal();
+        setupBoard();
+        // Clear previous state visuals if any
+        gameState.activePapayooColor = null;
+        updateDiceUI();
+    }
 }
 
 function showRules() {
