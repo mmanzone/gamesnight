@@ -816,7 +816,16 @@
                     ["Skull King captures Pirate", "+30 Bonus each"]
                 ],
                 valid_same_players: "Play Again (Same Players)",
-                new_game_players: "New Game (New Players)"
+                valid_same_players: "Play Again (Same Players)",
+                new_game_players: "New Game (New Players)",
+                editTitle: "Edit Round",
+                saveChanges: "Save Changes",
+                cancel: "Cancel",
+                pirate: "Pirate",
+                bet: "Bet",
+                won: "Won",
+                bonus: "Bonus",
+                wonError: "Total tricks won must equal Round Number!"
             },
             fr: {
                 add: "Ajouter un Pirate",
@@ -859,7 +868,16 @@
                     ["Skull King captures Pirate", "+30 Bonus each"]
                 ],
                 valid_same_players: "Rejouer (Mêmes Joueurs)",
-                new_game_players: "Nouvelle Partie (Nouveaux Joueurs)"
+                valid_same_players: "Rejouer (Mêmes Joueurs)",
+                new_game_players: "Nouvelle Partie (Nouveaux Joueurs)",
+                editTitle: "Modifier Manche",
+                saveChanges: "Sauvegarder",
+                cancel: "Annuler",
+                pirate: "Pirate",
+                bet: "Pari",
+                won: "Plis",
+                bonus: "Bonus",
+                wonError: "Le total des plis doit égaler le numéro de la manche !"
             }
         };
 
@@ -882,6 +900,10 @@
             document.getElementById('txt-confirm').innerText = t('confirm');
             document.getElementById('txt-confirm').innerText = t('confirm');
             document.getElementById('rank-title').innerText = t('rankTitle');
+
+            // Edit Modal Static Texts
+            document.getElementById('btn-edit-save').innerText = t('saveChanges');
+            document.getElementById('btn-edit-cancel').innerText = t('cancel');
 
             // Buttons in ranking modal (hardcoded in HTML currently, let's update if I18N support added, 
             // but for now I put static text with icons. 
@@ -1550,12 +1572,14 @@
             table.style.width = '100%';
             table.innerHTML = `
                 <tr>
-                    <th style="background:#222; text-align:left;">Pirate</th>
-                    <th style="background:#222;">Bet</th>
-                    <th style="background:#222;">Won</th>
-                    <th style="background:#222;">Bonus</th>
+                    <th style="background:#222; text-align:left;">${t('pirate')}</th>
+                    <th style="background:#222;">${t('bet')}</th>
+                    <th style="background:#222;">${t('won')}</th>
+                    <th style="background:#222;">${t('bonus')}</th>
                 </tr>
             `;
+
+            document.getElementById('edit-title-text').innerText = t('editTitle');
 
             gameState.players.forEach((p, i) => {
                 const s = p.scores[idx] || {};
@@ -1597,7 +1621,7 @@
                 }
 
                 const scoreData = { bet, won, bonus };
-                
+
                 if (bet !== undefined && won !== undefined) {
                     if (gameState.useSorenRule) {
                         scoreData.points = calculateSorenScore(roundNum, bet, won, bonus);
@@ -1605,18 +1629,18 @@
                         scoreData.points = calculateStandardScore(roundNum, bet, won, bonus);
                     }
                 } else {
-                    scoreData.points = undefined; 
+                    scoreData.points = undefined;
                 }
                 newScores.push(scoreData);
             }
 
             const allWonDefined = newScores.every(s => s.won !== undefined);
-            
+
             if (allWonDefined) {
                 if (tricksSum !== roundNum) {
-                     if (!confirm(`Total tricks won (${tricksSum}) does not equal Round Number (${roundNum}).\n\nSave anyway?`)) {
-                         return;
-                     }
+                    if (!confirm(`${t('wonError')} (${tricksSum} != ${roundNum}).\n\n${t('saveChanges')}?`)) {
+                        return;
+                    }
                 }
             }
 
@@ -1627,7 +1651,7 @@
 
             recalculateAllTotals();
             saveState();
-            
+
             document.getElementById('edit-modal').style.display = 'none';
         }
 
@@ -1637,12 +1661,12 @@
     <!-- Edit Round Modal -->
     <div id="edit-modal" class="modal">
         <div class="modal-content">
-            <h2>Edit Round <span id="edit-round-num"></span></h2>
+            <h2><span id="edit-title-text">Edit Round</span> <span id="edit-round-num"></span></h2>
             <div id="edit-list"></div>
             <div style="display:flex; gap:10px; margin-top:20px;">
-                <button class="btn-confirm" onclick="saveEditedRound()">Save Changes</button>
-                <button class="btn-revert"
-                    onclick="document.getElementById('edit-modal').style.display='none'">Cancel</button>
+                <button class="btn-confirm" onclick="saveEditedRound()" id="btn-edit-save">Save Changes</button>
+                <button class="btn-revert" onclick="document.getElementById('edit-modal').style.display='none'"
+                    id="btn-edit-cancel">Cancel</button>
             </div>
         </div>
     </div>

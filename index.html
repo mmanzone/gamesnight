@@ -9,6 +9,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Pirata+One&family=Bangers&family=Press+Start+2P&display=swap"
         rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -219,6 +220,8 @@
 <body>
 
     <div class="top-controls">
+        <button class="icon-btn" onclick="openHelp()" title="Instructions"><i
+                class="fas fa-question-circle"></i></button>
         <button class="icon-btn" onclick="toggleLang()" id="btn-lang" title="Switch Language">🇬🇧</button>
         <button class="icon-btn" onclick="openSettings()" title="Settings"><i class="fas fa-cog"></i></button>
     </div>
@@ -227,19 +230,19 @@
 
     <div class="game-grid">
         <a href="skullking/index.html" class="game-card card-skullking">
-            <img src="skullking.png" alt="Skull King">
+            <img src="skullking/skullking.png" alt="Skull King">
         </a>
 
         <a href="papayoo/index.html" class="game-card card-papayoo">
-            <img src="papayoo.png" alt="Papayoo">
+            <img src="papayoo/papayoo.png" alt="Papayoo">
         </a>
 
         <a href="dutch/index.html" class="game-card card-dutch">
-            <img src="dutch.png" alt="Dutch">
+            <img src="dutch/dutch.png" alt="Dutch">
         </a>
 
         <a href="generic/index.html" class="game-card card-generic">
-            <img src="generic.png" alt="Generic Game">
+            <img src="generic/generic.png" alt="Generic Game">
         </a>
     </div>
 
@@ -248,9 +251,9 @@
     </div>
 
     <!-- Audio Preload -->
-    <audio id="sfx-skull" src="skull.mp3"></audio>
-    <audio id="sfx-papayoo" src="papayou.mp3"></audio>
-    <audio id="sfx-dutch" src="dutch.mp3"></audio>
+    <audio id="sfx-skull" src="skullking/skull.mp3"></audio>
+    <audio id="sfx-papayoo" src="papayoo/papayou.mp3"></audio>
+    <audio id="sfx-dutch" src="dutch/dutch.mp3"></audio>
 
     <!-- Settings Modal -->
     <div id="settings-modal" class="modal">
@@ -271,6 +274,59 @@
             </div>
 
             <button class="btn-close" onclick="closeSettings()" data-i18n="close">Fermer</button>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px; text-align: left; max-height: 80vh; overflow-y: auto;">
+            <h2 style="text-align:center;">Soirée Jeux / Games Night</h2>
+            <p>Designed for families or friends wanting to track scores of popular card games from a simple web
+                interface.</p>
+
+            <h3>Features</h3>
+            <ul>
+                <li>Games are accessible via a modern browser from a desktop or computer</li>
+                <li>Scores are stored temporarily in the browser cache to prevent loss in case of a page reload or
+                    exiting the app</li>
+                <li>Players names are stored locally in the browser cache so they can be called back in the future. The
+                    list can be deleted by going to the settings on the home page</li>
+                <li>All games have a french (default) and english user interface</li>
+                <li>The results of all games can be shared as an image after the final round using the "share" features
+                    of the computer/phone/tablet used</li>
+            </ul>
+
+            <h3>Skull King</h3>
+            <ul>
+                <li>The counting mechanism used is "rascal" without all the options</li>
+                <li>Missed bets are displayed as empty circle; completed bets as filled circle and over-bets are showns
+                    as a + coin</li>
+            </ul>
+
+            <h3>Papayoo</h3>
+            <ul>
+                <li>Follows the official rules</li>
+                <li>When the Papyoo is played, press the Papayoo button to record who got hit</li>
+            </ul>
+
+            <h3>Dutch</h3>
+            <ul>
+                <li>A successful "dutch" scores -10 for the person who called it</li>
+                <li>A failed "dutch" scores the actual points + 10 points; if another player scores the same points as
+                    the player calling Dutch, the "dutch" is cancelled and standard points are counted</li>
+            </ul>
+
+            <h3>Generic game</h3>
+            <ul>
+                <li>This is used to track any kind of game cards</li>
+                <li>The game ends whether a specific score or number of rounds is met</li>
+                <li>The winner can be set to be the player with the most or the least amount of points at the end of the
+                    rounds/score match</li>
+            </ul>
+
+            <div style="text-align:center; margin-top:20px;">
+                <button class="btn-close" onclick="closeHelp()" data-i18n="close">Fermer</button>
+            </div>
         </div>
     </div>
 
@@ -367,6 +423,13 @@
         }
         function closeSettings() {
             document.getElementById('settings-modal').classList.remove('visible');
+        }
+
+        function openHelp() {
+            document.getElementById('help-modal').classList.add('visible');
+        }
+        function closeHelp() {
+            document.getElementById('help-modal').classList.remove('visible');
         }
 
         function setDefaultLang(val) {
