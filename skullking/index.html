@@ -801,6 +801,10 @@
                 needPirates: "You need at least 1 pirate to play!",
                 selectTricks: "Select tricks won first",
                 rankTitle: "Captain's Log",
+                unique_err: "Duplicate pirate names found! Use unique names.",
+                img_error: "Error generating image",
+                resume_msg: "Previous game found!",
+                pirate_placeholder: "Pirate ",
                 rules: [
                     ["Suits", "Yellow, Green, Purple (Low)"],
                     ["Jolly Roger", "Black (High Suit)"],
@@ -853,6 +857,10 @@
                 needPirates: "Il faut au moins 1 pirate pour jouer !",
                 selectTricks: "Sélectionnez les plis gagnés d'abord",
                 rankTitle: "Journal de Bord",
+                unique_err: "Noms en double trouvés ! Utilisez des noms uniques.",
+                img_error: "Erreur lors de la génération de l'image",
+                resume_msg: "Partie précédente trouvée !",
+                pirate_placeholder: "Pirate ",
                 rules: [
                     ["Couleurs", "Jaune, Vert, Violet (Bas)"],
                     ["Jolly Roger", "Noir (Atout)"],
@@ -898,8 +906,10 @@
             document.getElementById('setup-title').innerText = t('manifest');
             document.getElementById('modal-head').innerText = t('modalHead');
             document.getElementById('txt-confirm').innerText = t('confirm');
-            document.getElementById('txt-confirm').innerText = t('confirm');
             document.getElementById('rank-title').innerText = t('rankTitle');
+            
+            const resumeMsgEl = document.getElementById('resume-msg');
+            if (resumeMsgEl) resumeMsgEl.innerText = t('resume_msg');
 
             // Edit Modal Static Texts
             document.getElementById('btn-edit-save').innerText = t('saveChanges');
@@ -1069,7 +1079,7 @@
             div.innerHTML = `
                 <input type="radio" name="starting-dealer" id="${radioId}" class="dealer-radio" value="${num - 1}" ${checked}>
                 <label for="${radioId}" class="dealer-label" title="Start as Dealer"><i class="fas fa-crown"></i></label>
-                <input type="text" class="p-name" placeholder="Pirate ${num}" value="${val}" list="player-history" onblur="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)">
+                <input type="text" class="p-name" placeholder="${t('pirate_placeholder')}${num}" value="${val}" list="player-history" onblur="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1)">
             `;
             container.appendChild(div);
         }
@@ -1082,7 +1092,7 @@
 
             // Unique Check
             if (new Set(names).size !== names.length) {
-                showToast("Duplicate pirate names found! Use unique names.");
+                showToast(t('unique_err'));
                 return;
             }
 
@@ -1378,7 +1388,7 @@
                     }
                 });
             } catch (e) {
-                showToast("Error generating image");
+                showToast(t('img_error'));
             }
         }
 

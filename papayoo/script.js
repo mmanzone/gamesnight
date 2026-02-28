@@ -37,11 +37,11 @@ const I18N = {
         btn_papayoo: "7 # Papayoo !!",
         warn_dice: "Pas de couleur Papayoo sélectionnée !",
         warn_players: "Il faut au moins 3 joueurs !",
-        warn_auto: "Il doit y avoir exactement un champ vide pour utiliser le calcul automatique !",
-        warn_math: "Le total est de # (attendu 250).",
         confirm_reset: "Tout effacer ?",
         show_final: "Scores finaux",
         auto_complete: "Compléter Auto",
+        who_plays: "Qui joue ?",
+        player: "Joueur",
         rules: `
             <p><strong>But :</strong> Faire le MOINS de points possible.</p>
             <p><strong>Papayoo :</strong> Le 7 de la couleur du dé vaut 40 points.</p>
@@ -62,6 +62,7 @@ const I18N = {
     },
     en: {
         who_plays: "Who's playing?",
+        player: "Player",
         add_player: "+ Add Player",
         start_game: "Start Game!",
         total: "Tot.",
@@ -122,6 +123,11 @@ function updateUIText() {
 
     // Rules
     document.getElementById('rules-text').innerHTML = t('rules');
+
+    // Update placeholders
+    document.querySelectorAll('.p-name').forEach((input, index) => {
+        input.placeholder = `${t('player')} ${index + 1}`;
+    });
 }
 
 function init() {
@@ -170,7 +176,7 @@ function addPlayerInput(val = '') {
     const idx = list.children.length;
     div.innerHTML = `
         <div class="dealer-select ${idx === 0 ? 'selected' : ''}" onclick="selectDealer(${idx})">D</div>
-        <input type="text" class="p-name" value="${val}" placeholder="Player ${idx + 1}" list="player-history">
+        <input type="text" class="p-name" value="${val}" placeholder="${t('player')} ${idx + 1}" list="player-history">
     `;
     list.appendChild(div);
 }

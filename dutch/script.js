@@ -31,7 +31,11 @@ const I18N = {
         share: "📸 Partager",
         new_game: "Nouvelle Partie", // Keep for legacy or overwrite?
         valid_same_players: "Rejouer (Mêmes Joueurs)",
-        new_game_players: "Nouvelle Partie (Nouveaux Joueurs)"
+        new_game_players: "Nouvelle Partie (Nouveaux Joueurs)",
+        player: "Joueur",
+        unique_err: "Les noms doivent être uniques !",
+        min_players: "2 joueurs minimum",
+        confirm_reset: "Réinitialiser la partie ?"
     },
     en: {
         game_mode: "Game Mode",
@@ -56,7 +60,11 @@ const I18N = {
         share: "📸 Share",
         new_game: "New Game",
         valid_same_players: "Play Again (Same Players)",
-        new_game_players: "New Game (New Players)"
+        new_game_players: "New Game (New Players)",
+        player: "Player",
+        unique_err: "Unique names required!",
+        min_players: "Min 2 players",
+        confirm_reset: "Reset Game?"
     }
 };
 
@@ -77,6 +85,9 @@ function updateText() {
     if (limitInput) {
         limitInput.placeholder = gameState.mode === 'score' ? t('place_score') : t('place_round');
     }
+    document.querySelectorAll('.p-name').forEach((input, index) => {
+        input.placeholder = `${t('player')} ${index + 1}`;
+    });
     renderTable(); // Update table headers
 }
 
@@ -108,7 +119,7 @@ function addPlayerInput(val = '') {
     const idx = list.children.length;
     div.innerHTML = `
         <div class="dealer-select ${idx === 0 ? 'selected' : ''}" onclick="selectDealer(${idx})">D</div>
-        <input type="text" class="p-name" value="${val}" placeholder="Player ${idx + 1}" list="player-history">
+        <input type="text" class="p-name" value="${val}" placeholder="${t('player')} ${idx + 1}" list="player-history">
     `;
     list.appendChild(div);
 }
@@ -142,8 +153,8 @@ function startGame() {
     const names = Array.from(inputs).map(i => i.value.trim()).filter(n => n);
 
     // Unique Check
-    if (new Set(names).size !== names.length) return alert(t('unique_err') || "Unique names required!");
-    if (names.length < 2) return alert("Min 2 players");
+    if (new Set(names).size !== names.length) return showWarnUI(t('unique_err'));
+    if (names.length < 2) return showWarnUI(t('min_players'));
 
     gameState.players = names.map(n => n.charAt(0).toUpperCase() + n.slice(1));
     gameState.players.forEach(n => CommonGame.savePlayerName(n));
@@ -440,7 +451,7 @@ function closeModal() {
 }
 
 function resetGame() {
-    if (confirm("Reset Game?")) {
+    if (confirm(t('confirm_reset'))) {
         localStorage.removeItem('dutch_state');
         location.reload();
     }
