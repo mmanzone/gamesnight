@@ -45,3 +45,79 @@ const CommonGame = {
         }
     }
 };
+
+const ScoreAnnouncer = {
+    isSpeaking: false,
+    voicesReady: false,
+
+    initVoices: function () {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = () => {
+            this.voicesReady = true;
+        };
+        if (window.speechSynthesis.getVoices().length > 0) {
+            this.voicesReady = true;
+        }
+    },
+
+    announce: function (lines) {
+        if (!window.speechSynthesis) return;
+
+        if (this.isSpeaking) {
+            window.speechSynthesis.cancel();
+            this.isSpeaking = false;
+            return;
+        }
+
+        this.isSpeaking = true;
+
+        let targetLang = 'fr-FR';
+        if (typeof curLang !== 'undefined' && curLang === 'en') {
+            targetLang = 'en-US';
+        }
+
+        // Handle negative numbers for French "moins"
+        if (targetLang.startsWith('fr')) {
+            lines = lines.map(line => line.replace(/-(\d+)/g, "moins $1"));
+        }
+
+        const utterance = new SpeechSynthesisUtterance(lines.join(". "));
+        utterance.lang = targetLang;
+
+        // Voice adjustments
+        if (targetLang.startsWith('en')) {
+            utterance.rate = 1.3; // faster
+            utterance.pitch = 1.4; // higher pitch
+            utterance.volume = 1.0; // max volume
+        } else {
+            utterance.rate = 1.15; // slightly faster for French too
+        }
+
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+            let preferredVoices = voices.filter(v =>
+                v.lang.startsWith(targetLang.split('-')[0]) &&
+                (v.name.includes("Premium") || v.name.includes("Enhanced") || v.name.includes("Google") || v.name.includes("Siri") || v.name.includes("Natural"))
+            );
+            if (preferredVoices.length === 0) {
+                preferredVoices = voices.filter(v => v.lang.startsWith(targetLang.split('-')[0]));
+            }
+            if (preferredVoices.length > 0) {
+                utterance.voice = preferredVoices[0];
+            }
+        }
+
+        utterance.onend = () => {
+            this.isSpeaking = false;
+        };
+
+        utterance.onerror = () => {
+            this.isSpeaking = false;
+        };
+
+        window.speechSynthesis.speak(utterance);
+    }
+};
+
+ScoreAnnouncer.initVoices();

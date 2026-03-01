@@ -401,6 +401,35 @@ function saveState() {
     localStorage.setItem('generic_state', JSON.stringify(gameState));
 }
 
+function announceScores() {
+    if (!ScoreAnnouncer) return;
+
+    // Get table totals
+    const tbody = document.getElementById('table-body');
+    if (!tbody || tbody.children.length === 0) return; // game not started
+
+    let totals = new Array(gameState.players.length).fill(0);
+    gameState.rounds.forEach(r => {
+        r.forEach((val, pIdx) => {
+            totals[pIdx] += val;
+        });
+    });
+
+    const rankings = gameState.players.map((p, i) => ({ name: p, score: totals[i] }));
+
+    // Sort logic depends on win condition:
+    // If highest score wins, worst player is lowest score -> sort ascending
+    // If lowest score wins, worst player is highest score -> sort descending
+    if (gameState.winType === 'high') {
+        rankings.sort((a, b) => a.score - b.score);
+    } else {
+        rankings.sort((a, b) => b.score - a.score);
+    }
+
+    const lines = rankings.map(r => `${r.name}: ${r.score} points`);
+    ScoreAnnouncer.announce(lines);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const history = CommonGame.getStoredPlayers();
     const dl = document.createElement('datalist');

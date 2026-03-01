@@ -361,4 +361,26 @@ function restartSamePlayers() {
     setupBoard();
 }
 
+function announceScores() {
+    if (!ScoreAnnouncer) return;
+
+    // Get table body
+    const tbody = document.getElementById('table-body');
+    if (!tbody || tbody.children.length === 0) return; // game not started
+
+    // Sort logic depends on phase and score
+    let ranked = gameState.players.map((p, i) => ({
+        name: p,
+        phase: gameState.scores[i].phase,
+        points: gameState.scores[i].points,
+        idx: i
+    })).sort((a, b) => {
+        if (a.phase !== b.phase) return a.phase - b.phase; // ascending phase
+        return a.points - b.points; // ascending points on tie
+    });
+
+    const lines = ranked.map(r => `${r.name}, Phase ${r.phase > 10 ? 10 : r.phase}, ${r.points} points`);
+    ScoreAnnouncer.announce(lines);
+}
+
 document.addEventListener('DOMContentLoaded', init);

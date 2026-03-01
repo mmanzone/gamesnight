@@ -624,6 +624,18 @@ function saveState() {
     localStorage.setItem('papayoo_state', JSON.stringify(gameState));
 }
 
+function announceScores() {
+    if (!ScoreAnnouncer) return;
+
+    // Sort players by score descending (highest score = worst player)
+    const totals = renderScoreTable();
+    const rankings = gameState.players.map((p, i) => ({ name: p, score: totals[i] }));
+    rankings.sort((a, b) => b.score - a.score);
+
+    const lines = rankings.map(r => `${r.name}: ${r.score} points`);
+    ScoreAnnouncer.announce(lines);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const history = CommonGame.getStoredPlayers();
     const dl = document.createElement('datalist');
